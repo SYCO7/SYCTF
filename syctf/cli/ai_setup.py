@@ -7,6 +7,31 @@ from rich.panel import Panel
 from syctf.ai.client import get_ollama_client, get_ollama_host
 
 
+def _available_models(payload) -> list[str]:
+    """Extract model names from typed or dict Ollama list payloads."""
+
+    models_any = getattr(payload, "models", None)
+    if models_any is None and isinstance(payload, dict):
+        models_any = payload.get("models", [])
+    if models_any is None:
+        models_any = []
+
+    available: list[str] = []
+    for item in models_any:
+        name = ""
+        if isinstance(item, str):
+            name = item
+        elif isinstance(item, dict):
+            name = str(item.get("model") or item.get("name") or "")
+        else:
+            name = str(getattr(item, "model", "") or getattr(item, "name", ""))
+
+        name = name.strip()
+        if name and name not in available:
+            available.append(name)
+    return available
+
+
 def detect_resources():
     ram = round(psutil.virtual_memory().total / (1024**3))
     cpu = psutil.cpu_count()
@@ -56,13 +81,17 @@ def model_installed(model):
     host = get_ollama_host()
     client = get_ollama_client(timeout=3.0)
     try:
-        payload = client.list() or {}
-        names = {
-            entry.get("name", "")
-            for entry in payload.get("models", [])
-            if isinstance(entry, dict)
-        }
-        return model in names
+        payload = client.list()
+        available = _available_models(payload)
+        if not available:
+            print("Model list is empty.")
+            print(f"Configured host: {host}")
+            return False
+        if model not in available:
+            print(f"Model missing: {model}")
+            print(f"Available models: {available}")
+            return False
+        return True
     except Exception as exc:  # noqa: BLE001
         print("AI engine offline.")
         print(f"Configured host: {host}")
