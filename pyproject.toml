@@ -27,7 +27,7 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["syctf*", "modules*", "assets*"]
+include = ["syctf*"]
 
 [tool.setuptools.package-data]
 syctf = ["config/*.yaml"]
