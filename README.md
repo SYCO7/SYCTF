@@ -22,36 +22,51 @@ SYCTF is built for practical, real CTF work.
 - Persistent workspace and cache support: Save outputs, notes, and expensive analysis results for reuse.
 - Plugin pack support: Install, list, inspect, and remove external module packs.
 
-## 3. 📦 Installation
+## 📦 Installation
 
-Clone and set up SYCTF step by step:
+Follow these steps from top to bottom if you are setting up SYCTF for the first time.
+
+### 1. Clone Repository
 
 ```bash
-git clone https://github.com/<your-org>/SYCTF.git
+git clone https://github.com/SYCO7/SYCTF.git
 cd SYCTF
+```
+
+### 2. Create Virtual Environment
+
+```bash
 python -m venv .venv
 ```
 
-Activate the virtual environment:
+### 3. Activate Virtual Environment
 
 ```bash
-# Linux / macOS
-source .venv/bin/activate
-
 # Windows PowerShell
 .\.venv\Scripts\Activate.ps1
 ```
 
-Install dependencies:
+```bash
+# Linux / macOS
+source .venv/bin/activate
+```
+
+### 4. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Run SYCTF:
+### 5. Verify Installation
 
 ```bash
 python syctf.py --help
+```
+
+### 6. Start SYCTF Shell
+
+```bash
+python syctf.py shell
 ```
 
 ## 4. 🤖 Setup AI (Offline)
