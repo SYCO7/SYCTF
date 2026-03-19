@@ -10,13 +10,15 @@ import time
 from datetime import datetime, UTC
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
 
 from rich.console import Console
 from rich.panel import Panel
 from rich.rule import Rule
 
-from syctf.ai.client import get_ollama_client, get_ollama_host
+from syctf.ai.client import (
+    get_ai_connection_diagnostics,
+    get_ollama_client,
+)
 from syctf.modules.ai.category_detector import (
     detect_category,
     render_detection,
@@ -93,89 +95,49 @@ class AISession:
         logger.addHandler(handler)
         return logger
 
-    def check_ollama_health(self) -> bool:
-        """Check whether configured Ollama server is reachable."""
+    def _show_connection_diagnostics(self) -> bool:
+        """Render connection diagnostics and gate AI startup readiness."""
 
-        host = get_ollama_host()
-        client = get_ollama_client(timeout=2.0)
-        try:
-            client.list()
-        except Exception as exc:  # noqa: BLE001
-            self.console.print("AI engine offline.", markup=False)
-            self.console.print(f"Configured host: {host}", markup=False)
-            self.ai_logger.exception("ollama health check failed host=%s err=%s", host, exc)
-            return False
-        return True
+        diagnostics = get_ai_connection_diagnostics(model=self.model)
+        connected = diagnostics.connected_host or "unavailable"
+        latency = (
+            f"{diagnostics.latency_ms:.1f} ms"
+            if diagnostics.latency_ms is not None
+            else "unavailable"
+        )
+        model_state = "available" if diagnostics.model_available else "missing"
 
-    def check_model_available(self) -> bool:
-        """Verify configured model exists in Ollama model list."""
+        self.console.print(
+            Panel(
+                f"[green]✔ Connected host:[/green] {connected}\n"
+                f"[green]✔ Latency:[/green] {latency}\n"
+                f"[green]✔ Model availability:[/green] {model_state}",
+                title="AI Diagnostics",
+                border_style="cyan",
+            )
+        )
 
-        host = get_ollama_host()
-        client = get_ollama_client(timeout=3.0)
-        try:
-            payload = client.list()
-        except Exception as exc:  # noqa: BLE001
-            self.console.print("AI engine offline.", markup=False)
-            self.console.print(f"Configured host: {host}", markup=False)
-            self.ai_logger.exception("ollama model list failed host=%s err=%s", host, exc)
-            return False
-
-        available = self._available_models(payload)
-        if not available:
-            self.console.print("Model list is empty.", markup=False)
-            self.console.print(f"Configured host: {host}", markup=False)
-            self.ai_logger.warning("ollama model list empty host=%s", host)
+        if diagnostics.connected_host is None:
+            self.ai_logger.warning("ollama resolver failed: no reachable host")
+            self.console.print("AI engine offline — continuing without AI.", markup=False)
             return False
 
-        if self.model not in available:
-            if self._is_remote_host(host):
-                self.console.print("Model not found on remote Ollama server.", markup=False)
-            else:
-                self.console.print(f"Model missing: {self.model}", markup=False)
-            self.console.print(f"Available models: {available}", markup=False)
+        if not diagnostics.model_available:
+            self.console.print(f"Model missing: {self.model}", markup=False)
+            self.console.print(
+                f"Available models: {diagnostics.available_models}",
+                markup=False,
+            )
             self.ai_logger.warning(
                 "configured model missing host=%s model=%s available=%s",
-                host,
+                diagnostics.connected_host,
                 self.model,
-                available,
+                diagnostics.available_models,
             )
+            self.console.print("AI engine offline — continuing without AI.", markup=False)
             return False
 
         return True
-
-    @staticmethod
-    def _is_remote_host(host: str) -> bool:
-        """Return True when configured host is not local-loopback."""
-
-        parsed = urlparse(host)
-        hostname = (parsed.hostname or "").strip().lower()
-        return hostname not in {"", "localhost", "127.0.0.1", "::1", "0.0.0.0"}
-
-    @staticmethod
-    def _available_models(payload: Any) -> list[str]:
-        """Extract model names from typed or dict Ollama list payloads."""
-
-        models_any = getattr(payload, "models", None)
-        if models_any is None and isinstance(payload, dict):
-            models_any = payload.get("models", [])
-        if models_any is None:
-            models_any = []
-
-        available: list[str] = []
-        for item in models_any:
-            model_name = ""
-            if isinstance(item, str):
-                model_name = item
-            elif isinstance(item, dict):
-                model_name = str(item.get("model") or item.get("name") or "")
-            else:
-                model_name = str(getattr(item, "model", "") or getattr(item, "name", ""))
-
-            model_name = model_name.strip()
-            if model_name and model_name not in available:
-                available.append(model_name)
-
-        return available
 
     def start(self, mode: str = "chat") -> int:
         """Run AI prompt loop until user exits back to main shell."""
@@ -187,11 +149,8 @@ class AISession:
             )
             return 1
 
-        if not self.check_ollama_health():
-            return 1
-
-        if not self.check_model_available():
-            return 1
+        if not self._show_connection_diagnostics():
+            return 0
 
         self.console.print(Rule("[bold cyan]SYCTF AI MODE[/bold cyan]", style="cyan"))
         self.console.print("[cyan]Type exit to return to SYCTF shell.[/cyan]")
@@ -402,11 +361,8 @@ class AISession:
     def run_exploit_mode(self, binary_path: str, remote: str | None = None) -> int:
         """Run exploit generation mode for a target ELF binary path."""
 
-        if not self.check_ollama_health():
-            return 1
-
-        if not self.check_model_available():
-            return 1
+        if not self._show_connection_diagnostics():
+            return 0
 
         try:
             self.ai_logger.info("mode=exploit target=%s remote=%s", binary_path, remote)
@@ -475,15 +431,15 @@ class AISession:
         user_payload = f"Mode: {mode}\n\n{prompt}" if mode != "chat" else prompt
         self.messages.append({"role": "user", "content": user_payload})
 
-        client = get_ollama_client(timeout=self.stream_timeout_seconds)
-        stream = client.chat(model=self.model, messages=self.messages, stream=True)
-        stream_iter = iter(stream)
-
         self.console.print(Rule("[bold magenta]AI Response[/bold magenta]", style="magenta"))
 
         assistant_chunks: list[str] = []
         stream_started = time.monotonic()
         try:
+            client = get_ollama_client(timeout=self.stream_timeout_seconds)
+            stream = client.chat(model=self.model, messages=self.messages, stream=True)
+            stream_iter = iter(stream)
+
             with self.console.status("[magenta]Thinking...[/magenta]", spinner="dots"):
                 first = next(stream_iter, None)
 
@@ -510,6 +466,7 @@ class AISession:
             self.console.print(Rule(style="magenta"))
         except Exception as exc:  # noqa: BLE001
             self.console.print(f"[bold red]AI stream error:[/bold red] {exc}")
+            self.console.print("AI engine offline — continuing without AI.", markup=False)
             self.ai_logger.exception("stream_chat failure: %s", exc)
             return
 

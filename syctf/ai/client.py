@@ -3,22 +3,30 @@
 from __future__ import annotations
 
 import os
+from dataclasses import dataclass
 
 import ollama
 
-_DEFAULT_HOST = "http://127.0.0.1:11434"
+from syctf.ai.ollama_resolver import OllamaDiagnostics, OllamaResolver, OllamaResolverError
+
 _DEFAULT_TIMEOUT_SECONDS = 30.0
 
 
-def get_ollama_host() -> str:
-    """Return normalized Ollama host from environment configuration."""
+@dataclass(slots=True)
+class AIConnectionDiagnostics:
+    """Normalized AI connection diagnostics used by startup flows."""
 
-    host = os.environ.get("OLLAMA_HOST", _DEFAULT_HOST).strip()
-    if not host:
-        host = _DEFAULT_HOST
-    if not host.startswith("http"):
-        host = "http://" + host
-    return host
+    connected_host: str | None
+    latency_ms: float | None
+    model_available: bool
+    available_models: list[str]
+
+
+def get_ollama_host() -> str:
+    """Resolve and return active Ollama host from configured candidates."""
+
+    resolver = OllamaResolver()
+    return resolver.resolve()
 
 
 def _read_timeout_seconds() -> float:
@@ -56,3 +64,25 @@ def get_ollama_client(timeout: float | None = None) -> ollama.Client:
     print(f"[SYCTF AI] Using Ollama host: {host}")
 
     return ollama.Client(host=host, timeout=float(timeout))
+
+
+def get_ai_connection_diagnostics(model: str) -> AIConnectionDiagnostics:
+    """Return resolved host, latency, and model-availability diagnostics."""
+
+    resolver = OllamaResolver()
+    data: OllamaDiagnostics = resolver.diagnostics(model=model)
+    return AIConnectionDiagnostics(
+        connected_host=data.connected_host,
+        latency_ms=data.latency_ms,
+        model_available=data.model_available,
+        available_models=list(data.available_models),
+    )
+
+
+__all__ = [
+    "AIConnectionDiagnostics",
+    "OllamaResolverError",
+    "get_ai_connection_diagnostics",
+    "get_ollama_client",
+    "get_ollama_host",
+]
