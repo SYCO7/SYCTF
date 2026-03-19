@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "syctf"
+version = "0.1.0"
+description = "SYCTF terminal CTF automation framework"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+	"rich>=13.7.1",
+	"pyfiglet>=1.0.2",
+	"colorama>=0.4.6",
+	"requests>=2.32.3",
+	"alive-progress>=3.1.5",
+	"ollama>=0.3.3",
+	"psutil>=6.1.0",
+	"pyelftools>=0.31",
+]
+
+[project.scripts]
+syctf = "syctf.cli.main:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["syctf*", "modules*", "assets*"]
+
+[tool.setuptools.package-data]
+syctf = ["config/*.yaml"]
+assets = ["**/*"]
+

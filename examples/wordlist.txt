@@ -1,0 +1,8 @@
+admin
+login
+uploads
+backup
+api
+config
+hidden
+private

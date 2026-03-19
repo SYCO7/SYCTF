@@ -1,0 +1,36 @@
+.venv/
+venv/
+env/
+pyvenv.cfg
+
+__pycache__/
+*.py[cod]
+*.pyo
+*.so
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+.DS_Store
+Thumbs.db
+
+.idea/
+.vscode/
+
+# Local SYCTF runtime output
+logs/*.log
+decoded/*
+!logs/.gitkeep
+!decoded/.gitkeep
+
+# Local user state/cache
+.syctf/
+
+# Build/release artifacts
+build/
+dist/
+*.whl
