@@ -21,6 +21,13 @@ from rich.table import Table
 from syctf.core.cache_store import cache_key, load_json_cache, save_json_cache
 from syctf.core.types import ExecutionContext
 
+try:
+    from pwn import *  # noqa: F401,F403
+
+    PWNLIB_AVAILABLE = True
+except ImportError:
+    PWNLIB_AVAILABLE = False
+
 name = "elf-analyze"
 description = "Professional ELF triage analyzer with exploitability hints"
 

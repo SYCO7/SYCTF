@@ -10,6 +10,13 @@ from pathlib import Path
 
 from syctf.core.types import ExecutionContext
 
+try:
+    from pwn import *  # noqa: F401,F403
+
+    PWNLIB_AVAILABLE = True
+except ImportError:
+    PWNLIB_AVAILABLE = False
+
 
 def generate_cyclic(length: int) -> str:
     """Generate a deterministic cyclic pattern similar to pwntools."""

@@ -9,13 +9,12 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-import requests
 from rich.console import Console
 from rich.panel import Panel
 
+from syctf.ai.client import get_ollama_client, get_ollama_host
 from syctf.core.workspace_state import workspace_output_dir
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
 MODEL_NAME = "deepseek-coder:6.7b"
 REQUEST_TIMEOUT_SECONDS = 25.0
 MAX_CONTEXT_CHARS = 6000
@@ -175,39 +174,31 @@ def _extract_markdown(response_text: str) -> str:
 def _request_writeup(prompt: str, model: str) -> str:
     """Call local Ollama model to generate writeup markdown."""
 
-    payload = {
-        "model": model,
-        "prompt": prompt,
-        "stream": True,
-        "options": {
-            "temperature": 0.2,
-            "num_predict": 1400,
-        },
-    }
+    host = get_ollama_host()
+    client = get_ollama_client(timeout=REQUEST_TIMEOUT_SECONDS)
+    try:
+        client.list()
+    except Exception as exc:  # noqa: BLE001
+        raise RuntimeError(f"AI engine offline. Configured host: {host}. {type(exc).__name__}: {exc}") from exc
 
     started = time.monotonic()
     chunks: list[str] = []
-    with requests.post(
-        OLLAMA_URL,
-        json=payload,
-        timeout=(3.0, REQUEST_TIMEOUT_SECONDS),
+    for item in client.generate(
+        model=model,
+        prompt=prompt,
         stream=True,
-    ) as response:
-        response.raise_for_status()
-        for line in response.iter_lines(decode_unicode=True):
-            if not line:
-                continue
-            if time.monotonic() - started > REQUEST_TIMEOUT_SECONDS:
-                break
-            try:
-                item = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-            token = str(item.get("response", ""))
-            if token:
-                chunks.append(token)
-            if bool(item.get("done", False)):
-                break
+        options={
+            "temperature": 0.2,
+            "num_predict": 1400,
+        },
+    ):
+        if time.monotonic() - started > REQUEST_TIMEOUT_SECONDS:
+            break
+        token = str(item.get("response", ""))
+        if token:
+            chunks.append(token)
+        if bool(item.get("done", False)):
+            break
 
     return "".join(chunks).strip()
 

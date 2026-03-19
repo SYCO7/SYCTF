@@ -1,9 +1,10 @@
 import shutil
 import subprocess
-import requests
 import psutil
 from rich import print
 from rich.panel import Panel
+
+from syctf.ai.client import get_ollama_client, get_ollama_host
 
 
 def detect_resources():
@@ -39,18 +40,33 @@ def check_ollama_installed():
 
 
 def check_ollama_server():
+    host = get_ollama_host()
+    client = get_ollama_client(timeout=2.0)
     try:
-        requests.get("http://localhost:11434/api/tags", timeout=2)
+        client.list()
         return True
-    except:
+    except Exception as exc:  # noqa: BLE001
+        print("AI engine offline.")
+        print(f"Configured host: {host}")
+        print(f"Error: {type(exc).__name__}: {exc}")
         return False
 
 
 def model_installed(model):
+    host = get_ollama_host()
+    client = get_ollama_client(timeout=3.0)
     try:
-        out = subprocess.check_output(["ollama", "list"]).decode()
-        return model in out
-    except:
+        payload = client.list() or {}
+        names = {
+            entry.get("name", "")
+            for entry in payload.get("models", [])
+            if isinstance(entry, dict)
+        }
+        return model in names
+    except Exception as exc:  # noqa: BLE001
+        print("AI engine offline.")
+        print(f"Configured host: {host}")
+        print(f"Error: {type(exc).__name__}: {exc}")
         return False
 
 

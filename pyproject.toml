@@ -19,6 +19,9 @@ dependencies = [
 	"pyelftools>=0.31",
 ]
 
+[project.optional-dependencies]
+pwn = ["pwntools>=4.13.0"]
+
 [project.scripts]
 syctf = "syctf.cli.main:main"
 
