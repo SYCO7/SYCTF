@@ -1,515 +1,193 @@
-# SYCTF | AI-Native CTF Automation Framework
+# SYCTF - Offensive Security Terminal Framework
 
 [![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-MIT-2ea44f)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-Active-0b7285)](https://github.com/SYCO7/SYCTF)
+[![Status](https://img.shields.io/badge/Status-Alpha-f59f00)](https://github.com/SYCO7/SYCTF)
+[![Local AI](https://img.shields.io/badge/AI-Ollama%20Local-111827?logo=ollama)](https://ollama.com)
 
-SYCTF is a terminal-first CTF framework built for players who want speed, structure, and local AI power without losing manual control.
+Terminal-first offensive security framework for CTF operators who need speed, repeatability, and modular workflows.
 
-It combines:
-- deterministic modules for recon, web, pwn, crypto, rev, and misc workflows
-- reproducible challenge workspaces with session context
-- local or hybrid Ollama-backed AI for exploit and writeup acceleration
-- plugin-based extensibility for team-specific playbooks
+SYCTF blends deterministic automation with optional local AI reasoning for decoding, triage, and exploit acceleration.
 
-Fast enough for live CTF pressure, structured enough for long-running team operations.
+---
 
-## Table of Contents
+## 1) 🚀 What Is SYCTF
 
-- [Why SYCTF](#why-syctf)
-- [Feature Highlights](#feature-highlights)
-- [Hybrid AI Architecture](#hybrid-ai-architecture)
-- [Architecture Diagram (ASCII)](#architecture-diagram-ascii)
-- [Recommended Setup](#recommended-setup)
-- [Installation](#installation)
-  - [Windows PowerShell](#windows-powershell)
-  - [Kali Linux](#kali-linux)
-  - [Optional pwn extras](#optional-pwn-extras)
-- [Quick Start](#quick-start)
-- [Step-by-Step Usage](#step-by-step-usage)
-- [Real CTF Workflow Playbooks](#real-ctf-workflow-playbooks)
-- [Plugin System](#plugin-system)
-- [AI Mode](#ai-mode)
-- [Demo: 5-Minute Run](#demo-5-minute-run)
-- [Performance Tips](#performance-tips)
-- [Troubleshooting](#troubleshooting)
-- [Security and Legal Use](#security-and-legal-use)
+SYCTF is an offensive security workflow framework focused on:
 
-## Why SYCTF
+- CTF workflow automation
+- multilayer decoding assistance
+- exploit acceleration
+- modular security tooling
+- optional local AI via Ollama
 
-Most CTF time is lost in repetitive glue work:
-- rebuilding the same workspace layout
-- re-running low-signal recon steps
-- jumping between tools and notes
-- rewriting exploit/writeup skeletons from scratch
+---
 
-SYCTF keeps everything in one operator-focused CLI surface so you spend time exploiting, not wiring.
+## 2) ✨ Features
 
-## Feature Highlights
+| Capability | What You Get |
+|---|---|
+| Interactive Offensive Shell | Fast module discovery, command history, context-aware workflow |
+| Smart Decode Engine | Multi-layer transforms: base64, hex, reverse, Caesar/ROT search |
+| Hybrid AI Mode | Heuristic-first decoding + optional local LLM reasoning |
+| Modular Plugin Architecture | Category-driven modules and extensible plugin system |
+| Exploit Workflow Acceleration | ELF triage helpers, exploit skeleton generation, workspace context |
+| Clean Terminal UX | Rich panels, ranked candidates, pipeline visualization |
 
-- ⚡ Terminal-native command flow with optional interactive shell
-- 🧠 Recursive smart decoding and crypto helper utilities
-- 🌐 Practical web recon and fuzz helpers for first-pass triage
-- 🧩 ELF analysis + cyclic/offset helpers for pwn workflows
-- 🤖 AI-assisted exploit skeleton generation
-- 📝 AI-assisted writeup generation from workspace/session context
-- 🗂 Workspace scaffolding with persistent state
-- 🔌 Plugin marketplace support for external module packs
+---
 
-## Hybrid AI Architecture
+## 3) 🛠️ Installation (Linux / Kali)
 
-SYCTF supports a battle-tested hybrid model used by many players:
+### Step-by-step
 
-- Ollama runs on the host machine (Windows or Linux desktop)
-- SYCTF runs inside a Kali VM
-- Kali points to host Ollama via OLLAMA_HOST
+```bash
+git clone https://github.com/SYCO7/SYCTF.git
+cd SYCTF
+python3 -m venv ctfvenv
+source ctfvenv/bin/activate
+pip install -r requirements.txt
+python -m syctf
+```
 
-This gives you:
-- stronger model performance on host hardware
-- clean offensive tooling inside Kali
-- local/private inference path without cloud dependency
+### Notes
 
-### Hybrid Mode: Host Ollama + Kali SYCTF
+- The command above starts SYCTF using the package entrypoint.
+- If your local branch includes a launcher file, this may also work:
 
-1. Start Ollama on the host machine.
-2. Find host IP reachable from Kali VM.
-3. Export OLLAMA_HOST inside Kali.
-4. Verify model API reachability.
-5. Run SYCTF AI commands from Kali.
+```bash
+python syctf.py
+```
 
-Host example (PowerShell):
+---
 
-```powershell
-ollama serve
+## 4) 🤖 Optional AI Mode Setup (Ollama)
+
+SYCTF can run with local AI assistance. No cloud dependency required.
+
+### Install and start Ollama
+
+```bash
 ollama pull deepseek-coder:6.7b
+ollama serve
 ```
 
-Kali example (bash):
-
-```bash
-export OLLAMA_HOST=http://192.168.56.1:11434
-curl http://192.168.56.1:11434/api/tags
-syctf ai-setup
-```
-
-## Architecture Diagram (ASCII)
-
-```text
-                            +----------------------------------+
-                            | Host Machine (Windows/Linux)     |
-                            |----------------------------------|
-                            | Ollama Server                    |
-                            | Models: phi / deepseek / llama   |
-                            | Port: 11434                      |
-                            +----------------+-----------------+
-                                             |
-                          HTTP via OLLAMA_HOST
-                                             |
-                                             v
-+-----------------------------------------------------------------------+
-| Kali VM (CTF Operator Environment)                                     |
-|------------------------------------------------------------------------|
-|  SYCTF CLI / Shell                                                     |
-|      |                                                                  |
-|      +--> Module Loader --> recon / web / pwn / crypto / rev / misc   |
-|      |                                                                  |
-|      +--> AI Layer --> exploit generation / writeup generation / chat  |
-|      |                                                                  |
-|      +--> Workspace System --> binary/ exploit/ decoded/ notes/ scripts|
-+-----------------------------------------------------------------------+
-```
-
-## Recommended Setup
-
-Use this baseline for stable performance:
-
-- Python: 3.10 or 3.11 preferred (3.9+ supported)
-- RAM: 16 GB+ recommended for deepseek-coder:6.7b
-- Disk: SSD strongly recommended
-- VM networking: bridged or host-only with stable IP routing
-- Core tools on Kali for pwn: gdb, build-essential, python3-dev
-- Models:
-  - low RAM: phi
-  - balanced: deepseek-coder:6.7b
-  - high-end: codellama:13b
-
-## Installation
-
-### Windows PowerShell
-
-```powershell
-git clone https://github.com/SYCO7/SYCTF.git
-cd SYCTF
-
-py -3 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-
-python -m pip install --upgrade pip
-pip install -e .
-
-# verify
-syctf --help
-```
-
-If script execution is blocked:
-
-```powershell
-Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
-```
-
-### Kali Linux
-
-```bash
-git clone https://github.com/SYCO7/SYCTF.git
-cd SYCTF
-
-sudo apt update
-sudo apt install -y python3-venv python3-pip build-essential gdb
-
-python3 -m venv .venv
-source .venv/bin/activate
-
-python3 -m pip install --upgrade pip
-pip install -e .
-
-# verify
-syctf --help
-```
-
-### Optional pwn extras
-
-Pwntools is optional and not included in the base install.
-
-Install pwn extras:
-
-```bash
-pip install "syctf[pwn]"
-```
-
-Windows note:
-- SYCTF runs on Windows, but advanced pwn flows may be limited.
-- Auto-corefile workflows are Linux-oriented.
-- For reliable pwn pipelines, run pwn modules in Kali/Linux.
-
-## Quick Start
-
-Linux/macOS:
+### Verify SYCTF AI integration
 
 ```bash
 syctf ai-setup
-syctf shell
 ```
 
-Windows PowerShell:
+---
 
-```powershell
-syctf ai-setup
-syctf shell
-```
-
-No PATH yet?
-
-```bash
-python -m syctf --help
-python -m syctf shell
-```
-
-## Step-by-Step Usage
-
-### 1) Initialize challenge workspace
-
-```bash
-syctf workspace init babyrop
-```
-
-Creates:
-- binary/
-- exploit/
-- decoded/
-- notes/
-- scripts/
-
-Workspace root location:
-- Linux/Kali: ~/.syctf/workspaces/babyrop
-- Windows: C:\Users\<you>\.syctf\workspaces\babyrop
-
-### 2) Set target binary
-
-```bash
-syctf workspace set-target ./binary/chall
-```
-
-The relative target path is resolved inside the active workspace root.
-
-### 3) Triage + helper modules
-
-```bash
-syctf pwn-helper elf-analyze ./binary/chall
-syctf pwn-helper cyclic generate --length 300
-syctf misc smart-decode "U0dWc2JHOD0="
-syctf crypto-helper hash-ident --hash 5d41402abc4b2a76b9719d911017c592
-```
-
-### 4) Web-first recon chain
-
-```bash
-syctf web-helper quick-recon https://target.ctf
-syctf web-helper quick-fuzz "https://target.ctf/search?q=test"
-syctf web-helper param-fuzzer --url "https://target.ctf/item?id=1"
-```
-
-### 5) AI exploit skeleton
-
-```bash
-syctf ai exploit ./binary/chall --remote challenge.ctf.net:31337
-```
-
-### 6) AI writeup from workspace context
-
-```bash
-syctf ai writeup --model deepseek-coder:6.7b
-```
-
-## Real CTF Workflow Playbooks
-
-### Workflow A: Web challenge first pass
-
-```bash
-syctf workspace init web_ssti
-syctf web-helper quick-recon "https://web-challenge.ctf"
-syctf web-helper quick-fuzz "https://web-challenge.ctf/search?q=test"
-syctf web-helper param-fuzzer --url "https://web-challenge.ctf/item?id=1" --payload "{{7*7}}"
-```
-
-Signals to hunt:
-- reflected payload behavior
-- backend error leakage
-- hidden endpoints and weak params
-
-### Workflow B: Pwn ELF to exploit draft
-
-```bash
-syctf workspace init babybof
-syctf workspace set-target ./binary/babybof
-syctf pwn-helper elf-analyze ./binary/babybof
-syctf pwn-helper cyclic generate --length 500
-syctf ai exploit ./binary/babybof --remote host.ctf.net:9001
-```
-
-### Workflow C: Encoding and crypto chain
-
-```bash
-syctf misc smart-decode "Vm0weE5GUXhTbGhoV0doVFYwZG9XRmx0ZEdGV2JYaHJXa2R3VjFKcmNIbFdSVVpYVWpGS1NWWXhjRmRXTVhCS1VteHdVbFJ0VGs5WFJsWnhWakZhYzFwV1NrZFRiRkpIV2tWYWQySkVSbFZXTTFKR1lYcGFWbGRyV2xkbFJtUnZZbFZhV0ZkR1ZuUmFWR2hYVm1wS1MyVkdXbkpoTTJoVVZqQmFNMVJ0Y0U5a1ZscHpXa1JTVjFaV1pEQldWbHBQ"
-syctf crypto-helper caesar-brute --text "Gur synt vf abg urer"
-```
-
-## Plugin System
-
-SYCTF can load external module packs from GitHub.
-
-### Operator commands
-
-```bash
-syctf plugin install owner/repo
-syctf plugin list
-syctf plugin info owner_repo
-syctf plugin remove owner_repo
-```
-
-How install works:
-- downloads repository main branch zip archive
-- validates plugin.json schema
-- checks module package layout
-- installs plugin requirements if requirements.txt exists
-- registers modules dynamically at runtime
-
-### Plugin package requirements
-
-- plugin.json with at least: name, version, author, modules
-- modules/ directory containing plugin module files
-
-Minimal plugin.json example:
-
-```json
-{
-  "name": "web-ssti-pack",
-  "version": "0.1.0",
-  "author": "team-red",
-  "modules": ["web/ssti-scanner"],
-  "requires_syctf_version": "0.1.0"
-}
-```
-
-## AI Mode
-
-SYCTF AI is local-first and designed for CTF operator workflows.
-
-### CLI AI commands
-
-```bash
-syctf ai-setup
-syctf ai exploit ./binary/chall --remote host:port
-syctf ai writeup --model deepseek-coder:6.7b
-```
-
-### In-shell AI commands
-
-```text
-SYCTF > ai
-SYCTF > ai decode
-SYCTF > ai recon-plan
-SYCTF > ai exploit ./binary/chall --remote host:port
-SYCTF > ai writeup --model deepseek-coder:6.7b
-```
-
-### What AI mode is best at
-
-- category detection and attack path suggestions
-- exploit skeleton drafts using ELF metadata
-- quick writeup generation from recorded session context
-
-### What AI mode is not
-
-- not a flag oracle
-- not a substitute for manual verification
-- not a replacement for challenge-specific reasoning
-
-## Demo: 5-Minute Run
-
-### 1) Start shell and inspect modules
+## 5) ⚡ Quick Start Usage
 
 ```bash
 syctf shell
-```
-
-Inside shell:
-
-```text
 list
-use misc/smart-decode
-run SGVsbG8gQ1RGIQ==
-back
-ai
+misc smart-decode <cipher>
+ai decode <cipher>
 ```
 
-### 2) Run a real challenge scaffold flow
-
-Linux/Kali:
+You can also run the new direct decode command without entering shell:
 
 ```bash
-syctf workspace init demo_challenge
-cp ./path/to/chall ~/.syctf/workspaces/demo_challenge/binary/chall
-syctf workspace set-target ./binary/chall
-syctf pwn-helper elf-analyze ./binary/chall
-syctf ai writeup
+syctf auto-decode <cipher> --script
 ```
 
-Windows PowerShell:
+---
 
-```powershell
-syctf workspace init demo_challenge
-Copy-Item .\path\to\chall $HOME\.syctf\workspaces\demo_challenge\binary\chall
-syctf workspace set-target .\binary\chall
-syctf pwn-helper elf-analyze .\binary\chall
-syctf ai writeup
+## 6) 🧠 Hybrid Mode (Heuristic First, AI Second)
+
+SYCTF decode logic is intentionally staged:
+
+1. Heuristic decoding attempts
+2. Transform scoring and ranking
+3. Flag pattern detection
+4. Optional local AI reasoning only when confidence is low
+
+### Decode strategy includes
+
+- base64 single and multi-layer attempts
+- hex decoding
+- reverse transforms
+- Caesar/ROT brute forcing
+- prefix checks: picoCTF{...}, flag{...}, HTB{...}
+
+### Alpha honesty
+
+> AI reasoning may be inconsistent in alpha.
+> Use AI output as an accelerator, not as ground truth.
+
+---
+
+## 7) 🖥️ Example Terminal Workflow
+
+```text
+$ syctf shell
+
+SYCTF > list
+SYCTF > use misc/smart-decode
+SYCTF (smart-decode) > run cGljb0NURnt0ZXN0X2ZsYWd9
+
+[Detected Cipher Hints]
+- base64-like alphabet detected
+- alphabetic payload; Caesar/ROT candidates enabled
+
+[Transform Pipeline Ranking]
+1  input -> base64                      score=0.7744  preview=picoCTF{test_flag}
+2  input -> base64 -> reverse           score=0.4444  preview=}galf_tset{FTCocip
+
+[Best Candidate]
+Pipeline: input -> base64
+Output: picoCTF{test_flag}
+
+SYCTF > ai decode cGljb0NURnt0ZXN0X2ZsYWd9
+SYCTF > ai exploit ./binary/chall --remote host:31337
 ```
 
-Visual preview:
+---
 
-![SYCTF Demo](docs/demo.gif)
+## 8) 🧩 Architecture Overview
 
-## Performance Tips
+- Core shell: command routing, category execution, session state
+- Modules: recon, web, pwn, crypto, rev, misc, ai
+- Decode engine: transform-chain exploration + candidate ranking
+- AI connector: local Ollama client + model diagnostics
+- Scoring system: readability, braces, known-prefix matches, entropy reduction
 
-- Initialize workspace early so artifacts are automatically organized.
-- Keep Ollama running during CTF sessions to avoid cold start latency.
-- Use quick-recon before heavier fuzz routines.
-- Select model size based on available RAM to avoid swapping.
-- In hybrid mode, keep host and Kali VM on low-latency network path.
-- For pwn heavy tasks, use Kali/Linux with optional pwn extras installed.
+---
 
-## Troubleshooting
+## 9) 🗺️ Roadmap
 
-### syctf command not found
+- auto exploit scripting with deeper binary context
+- stronger cipher and encoding recognition
+- plugin marketplace expansion and trust controls
+- remote collaboration mode for team operations
 
-```bash
-python -m syctf --help
-```
+---
 
-If this works, your environment PATH is not active. Re-activate your virtual environment.
+## 10) ⚠️ Disclaimer
 
-Windows:
+SYCTF is for educational use, CTF competitions, and authorized security research.
 
-```powershell
-.\.venv\Scripts\Activate.ps1
-```
+Do not use this framework on systems you do not own or explicitly have permission to test.
 
-Linux:
+---
 
-```bash
-source .venv/bin/activate
-```
+## 11) 👤 Author
 
-### AI engine offline or host unreachable
+**Tanmoy Mondal**
 
-Check Ollama process:
+- GitHub: [https://github.com/SYCO7](https://github.com/SYCO7)
+- LinkedIn: [https://www.linkedin.com/in/tanmoy-mondal-11070334b/](https://www.linkedin.com/in/tanmoy-mondal-11070334b/)
+- Portfolio: [https://cybersyco.vercel.app/](https://cybersyco.vercel.app/)
 
-```bash
-ollama serve
-```
+---
 
-Hybrid check from Kali:
+### Final Notes
 
-```bash
-export OLLAMA_HOST=http://<host-ip>:11434
-curl http://<host-ip>:11434/api/tags
-```
+SYCTF is in active alpha.
 
-### Model missing error
-
-Symptom examples:
-- Model missing: deepseek-coder:6.7b
-- Available models: [...]
-
-Fix:
-
-```bash
-ollama pull deepseek-coder:6.7b
-syctf ai-setup
-```
-
-### AI memory/runtime pressure (OOM, stalled generation)
-
-Fix sequence:
-- switch to smaller model (for example phi)
-- close memory-heavy applications
-- allocate more RAM to Kali VM
-- reduce parallel tooling load
-
-### pwntools issues on Windows
-
-- pwntools support on Windows can be partial depending on workflow
-- auto corefile offset paths are Linux-first
-- best practice is Kali/Linux for advanced pwn operations
-
-Install optional pwn extras in Linux:
-
-```bash
-pip install "syctf[pwn]"
-```
-
-### Plugin installation failures
-
-Checklist:
-- repository exists and is reachable
-- plugin.json is valid and complete
-- modules/ directory exists in plugin package
-- plugin dependencies install successfully
-
-## Security and Legal Use
-
-Use SYCTF only in legal, authorized environments:
-- CTF platforms
-- local labs
-- explicitly authorized assessments
-
-You are responsible for compliance with laws and competition rules.
+- Expect rapid changes.
+- Expect edge cases in hybrid AI mode.
+- Expect practical value today for serious CTF operators.

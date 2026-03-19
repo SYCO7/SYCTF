@@ -232,6 +232,7 @@ def run_shell(app) -> int:
                     "ai writeup        Generate markdown writeup from session context\n"
                     "ai decode         Enter AI decoding mode\n"
                     "ai recon-plan     Enter AI recon planning mode\n"
+                    "auto-decode ...   Forward to top-level auto decode command\n"
                     "help              Show this panel\n"
                     "exit              Exit shell\n\n"
                     "Other input is forwarded to standard SYCTF argparse commands.",

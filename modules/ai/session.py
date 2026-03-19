@@ -22,6 +22,7 @@ from modules.ai.category_detector import (
     render_detection,
     suggested_workflow,
 )
+from modules.ai.auto_decode import run_auto_decode_command
 from modules.ai.exploit_generator import generate_exploit
 from syctf.core.paths import get_logs_dir
 from syctf.core.workspace_state import append_ai_note
@@ -210,6 +211,11 @@ class AISession:
                 continue
             if len(prompt) > 4000:
                 self.console.print("[yellow]Input too long (max 4000 chars).[/yellow]")
+                continue
+
+            if mode == "decode":
+                self.log_query(prompt, mode)
+                self._run_decode_pipeline(prompt)
                 continue
 
             if mode == "chat":
@@ -520,3 +526,21 @@ class AISession:
                 title=f"AI Response ({mode})",
                 content="".join(assistant_chunks),
             )
+
+    def _run_decode_pipeline(self, payload: str) -> None:
+        """Run deterministic decode-first pipeline for ai decode mode."""
+
+        try:
+            run_auto_decode_command(
+                payload,
+                console=self.console,
+                cache=(self.execution_context.cache if self.execution_context is not None else None),
+                model=self.model,
+                max_depth=4,
+                top_n=8,
+                llm_threshold=0.72,
+                script=True,
+            )
+        except Exception as exc:  # noqa: BLE001
+            self.console.print(f"[bold red]AI decode pipeline failed:[/bold red] {exc}")
+            self.ai_logger.exception("decode pipeline failure: %s", exc)
