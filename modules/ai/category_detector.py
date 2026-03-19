@@ -9,8 +9,10 @@ from typing import Any
 
 from rich.console import Console
 from rich.panel import Panel
+from syctf.ai.client import get_ollama_client
 
 CATEGORIES = {"pwn", "crypto", "web", "rev", "misc", "forensics"}
+AI_TIMEOUT_SECONDS = 12.0
 
 DETECTION_PROMPT = """
 You are a CTF category classifier.
@@ -134,9 +136,8 @@ def detect_category(text: str, model: str = "deepseek-coder:6.7b") -> dict[str, 
         return heuristic.as_dict()
 
     try:
-        from ollama import chat
-
-        response = chat(
+        client = get_ollama_client(timeout=AI_TIMEOUT_SECONDS)
+        response = client.chat(
             model=model,
             messages=[
                 {"role": "system", "content": DETECTION_PROMPT},
@@ -156,10 +157,14 @@ def detect_category(text: str, model: str = "deepseek-coder:6.7b") -> dict[str, 
             reasoning=parsed.get("reasoning", "model-based classification"),
         )
         return result.as_dict()
-    except Exception:
+    except Exception as exc:  # noqa: BLE001
         if heuristic:
             return heuristic.as_dict()
-        return _normalize_result("misc", 0.3, "LLM unavailable; defaulted to misc").as_dict()
+        return _normalize_result(
+            "misc",
+            0.3,
+            f"LLM unavailable; defaulted to misc ({type(exc).__name__}: {exc})",
+        ).as_dict()
 
 
 def suggested_workflow(category: str) -> list[str]:

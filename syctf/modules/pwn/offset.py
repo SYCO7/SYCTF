@@ -10,6 +10,14 @@ from pathlib import Path
 from typing import Any
 
 from rich.panel import Panel
+from syctf.tools.wrappers.pwntools import print_missing_pwntools
+
+try:
+    from pwn import *  # noqa: F401,F403
+
+    PWNLIB_AVAILABLE = True
+except ImportError:
+    PWNLIB_AVAILABLE = False
 
 name = "offset"
 description = "Find crash offset via cyclic patterns (manual or auto)"
@@ -99,11 +107,8 @@ def _load_pwntools(context: Any) -> dict[str, Any] | None:
         from pwn import cyclic
         from pwn import cyclic_find
         from pwn import process
-    except Exception as exc:  # noqa: BLE001
-        context.console.print(
-            "[bold red]pwntools is required.[/bold red] Install with: pip install pwntools"
-        )
-        context.logger.exception("pwntools import failed: %s", exc)
+    except ImportError:
+        print_missing_pwntools(context.console)
         return None
 
     return {

@@ -11,11 +11,11 @@ from datetime import datetime, UTC
 from pathlib import Path
 from typing import Any
 
-import requests
 from rich.console import Console
 from rich.panel import Panel
 from rich.rule import Rule
 
+from syctf.ai.client import get_ollama_client, get_ollama_host
 from modules.ai.category_detector import (
     detect_category,
     render_detection,
@@ -93,22 +93,30 @@ class AISession:
         return logger
 
     def check_ollama_health(self) -> bool:
-        """Check whether local Ollama server is reachable."""
+        """Check whether configured Ollama server is reachable."""
 
+        host = get_ollama_host()
+        client = get_ollama_client(timeout=2.0)
         try:
-            response = requests.get("http://localhost:11434/api/tags", timeout=2.0)
-        except requests.RequestException:
+            client.list()
+        except Exception as exc:  # noqa: BLE001
+            self.console.print("AI engine offline.", markup=False)
+            self.console.print(f"Configured host: {host}", markup=False)
+            self.ai_logger.exception("ollama health check failed host=%s err=%s", host, exc)
             return False
-        return response.status_code == 200
+        return True
 
     def check_model_available(self) -> bool:
         """Verify configured model exists in local Ollama model list."""
 
+        host = get_ollama_host()
+        client = get_ollama_client(timeout=3.0)
         try:
-            response = requests.get("http://localhost:11434/api/tags", timeout=3.0)
-            response.raise_for_status()
-            payload = response.json()
-        except (requests.RequestException, ValueError):
+            payload = client.list() or {}
+        except Exception as exc:  # noqa: BLE001
+            self.console.print("AI engine offline.", markup=False)
+            self.console.print(f"Configured host: {host}", markup=False)
+            self.ai_logger.exception("ollama model list failed host=%s err=%s", host, exc)
             return False
 
         models = payload.get("models", [])
@@ -418,12 +426,11 @@ class AISession:
     def stream_chat(self, prompt: str, *, mode: str = "chat") -> None:
         """Stream AI response token-by-token to terminal output."""
 
-        from ollama import chat
-
         user_payload = f"Mode: {mode}\n\n{prompt}" if mode != "chat" else prompt
         self.messages.append({"role": "user", "content": user_payload})
 
-        stream = chat(model=self.model, messages=self.messages, stream=True)
+        client = get_ollama_client(timeout=self.stream_timeout_seconds)
+        stream = client.chat(model=self.model, messages=self.messages, stream=True)
         stream_iter = iter(stream)
 
         self.console.print(Rule("[bold magenta]AI Response[/bold magenta]", style="magenta"))

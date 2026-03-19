@@ -18,6 +18,7 @@ from syctf.core.plugin_marketplace import PluginManager, run_plugin_command
 from syctf.core.plugin_loader import PluginLoader
 from syctf.core.types import AppConfig, ExecutionContext
 from syctf.core.workspace_state import apply_state_to_cache
+from syctf.tools.wrappers.pwntools import PWNLIB_AVAILABLE, print_missing_pwntools, print_windows_notice
 from syctf import modules
 
 COMMAND_CATEGORY_MAP: dict[str, str] = {
@@ -136,6 +137,11 @@ class SyctfApp:
 		if not category:
 			self.console.print("[bold red]Unknown command category.[/bold red]")
 			return 2
+
+		if str(category) == "pwn":
+			print_windows_notice(self.console)
+			if not PWNLIB_AVAILABLE:
+				print_missing_pwntools(self.console)
 
 		plugins = self.loader.discover(str(category))
 		if not plugins:

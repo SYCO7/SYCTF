@@ -7,7 +7,6 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
-import requests
 from rich.align import Align
 from rich.columns import Columns
 from rich.console import Console, Group
@@ -16,6 +15,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
+from syctf.ai.client import get_ollama_client, get_ollama_host
 from syctf.core.plugin_marketplace import PluginManager
 from syctf import modules
 
@@ -83,16 +83,19 @@ def _collect_diagnostics() -> StartupDiagnostics:
     model_loaded = False
 
     try:
-        response = requests.get("http://localhost:11434/api/tags", timeout=0.25)
-        ai_online = response.status_code == 200
-        if ai_online:
-            payload = response.json() if response.content else {}
-            models = payload.get("models", []) if isinstance(payload, dict) else []
-            names = {entry.get("name", "") for entry in models if isinstance(entry, dict)}
-            model_loaded = DEFAULT_MODEL in names
-    except Exception:  # noqa: BLE001
+        client = get_ollama_client(timeout=0.25)
+        payload = client.list() or {}
+        ai_online = True
+        models = payload.get("models", []) if isinstance(payload, dict) else []
+        names = {entry.get("name", "") for entry in models if isinstance(entry, dict)}
+        model_loaded = DEFAULT_MODEL in names
+    except Exception as exc:  # noqa: BLE001
         ai_online = False
         model_loaded = False
+        print(
+            f"[SYCTF AI] Ollama diagnostics unavailable for {get_ollama_host()}: "
+            f"{type(exc).__name__}: {exc}"
+        )
 
     manager = PluginManager()
     plugins_loaded = len(manager.list_plugins())
