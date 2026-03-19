@@ -10,6 +10,7 @@ import time
 from datetime import datetime, UTC
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 from rich.console import Console
 from rich.panel import Panel
@@ -107,21 +108,74 @@ class AISession:
         return True
 
     def check_model_available(self) -> bool:
-        """Verify configured model exists in local Ollama model list."""
+        """Verify configured model exists in Ollama model list."""
 
         host = get_ollama_host()
         client = get_ollama_client(timeout=3.0)
         try:
-            payload = client.list() or {}
+            payload = client.list()
         except Exception as exc:  # noqa: BLE001
             self.console.print("AI engine offline.", markup=False)
             self.console.print(f"Configured host: {host}", markup=False)
             self.ai_logger.exception("ollama model list failed host=%s err=%s", host, exc)
             return False
 
-        models = payload.get("models", [])
-        model_names = {entry.get("name", "") for entry in models if isinstance(entry, dict)}
-        return self.model in model_names
+        available = self._available_models(payload)
+        if not available:
+            self.console.print("Model list is empty.", markup=False)
+            self.console.print(f"Configured host: {host}", markup=False)
+            self.ai_logger.warning("ollama model list empty host=%s", host)
+            return False
+
+        if self.model not in available:
+            if self._is_remote_host(host):
+                self.console.print("Model not found on remote Ollama server.", markup=False)
+            else:
+                self.console.print(f"Model missing: {self.model}", markup=False)
+            self.console.print(f"Available models: {available}", markup=False)
+            self.ai_logger.warning(
+                "configured model missing host=%s model=%s available=%s",
+                host,
+                self.model,
+                available,
+            )
+            return False
+
+        return True
+
+    @staticmethod
+    def _is_remote_host(host: str) -> bool:
+        """Return True when configured host is not local-loopback."""
+
+        parsed = urlparse(host)
+        hostname = (parsed.hostname or "").strip().lower()
+        return hostname not in {"", "localhost", "127.0.0.1", "::1", "0.0.0.0"}
+
+    @staticmethod
+    def _available_models(payload: Any) -> list[str]:
+        """Extract model names from typed or dict Ollama list payloads."""
+
+        models_any = getattr(payload, "models", None)
+        if models_any is None and isinstance(payload, dict):
+            models_any = payload.get("models", [])
+        if models_any is None:
+            models_any = []
+
+        available: list[str] = []
+        for item in models_any:
+            model_name = ""
+            if isinstance(item, str):
+                model_name = item
+            elif isinstance(item, dict):
+                model_name = str(item.get("model") or item.get("name") or "")
+            else:
+                model_name = str(getattr(item, "model", "") or getattr(item, "name", ""))
+
+            model_name = model_name.strip()
+            if model_name and model_name not in available:
+                available.append(model_name)
+
+        return available
 
     def start(self, mode: str = "chat") -> int:
         """Run AI prompt loop until user exits back to main shell."""
@@ -134,13 +188,9 @@ class AISession:
             return 1
 
         if not self.check_ollama_health():
-            self.console.print("[bold red]AI engine offline. Run: ollama serve[/bold red]")
             return 1
 
         if not self.check_model_available():
-            self.console.print(
-                "[bold red]Model missing. Run: ollama pull deepseek-coder:6.7b[/bold red]"
-            )
             return 1
 
         self.console.print(Rule("[bold cyan]SYCTF AI MODE[/bold cyan]", style="cyan"))
@@ -353,13 +403,9 @@ class AISession:
         """Run exploit generation mode for a target ELF binary path."""
 
         if not self.check_ollama_health():
-            self.console.print("[bold red]AI engine offline. Run: ollama serve[/bold red]")
             return 1
 
         if not self.check_model_available():
-            self.console.print(
-                "[bold red]Model missing. Run: ollama pull deepseek-coder:6.7b[/bold red]"
-            )
             return 1
 
         try:

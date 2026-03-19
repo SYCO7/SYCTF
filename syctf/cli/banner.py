@@ -82,13 +82,32 @@ def _collect_diagnostics() -> StartupDiagnostics:
     ai_online = False
     model_loaded = False
 
+    def _available_models(payload: object) -> list[str]:
+        models_any = getattr(payload, "models", None)
+        if models_any is None and isinstance(payload, dict):
+            models_any = payload.get("models", [])
+        if models_any is None:
+            models_any = []
+
+        out: list[str] = []
+        for item in models_any:
+            name = ""
+            if isinstance(item, str):
+                name = item
+            elif isinstance(item, dict):
+                name = str(item.get("model") or item.get("name") or "")
+            else:
+                name = str(getattr(item, "model", "") or getattr(item, "name", ""))
+            name = name.strip()
+            if name and name not in out:
+                out.append(name)
+        return out
+
     try:
         client = get_ollama_client(timeout=0.25)
-        payload = client.list() or {}
+        payload = client.list()
         ai_online = True
-        models = payload.get("models", []) if isinstance(payload, dict) else []
-        names = {entry.get("name", "") for entry in models if isinstance(entry, dict)}
-        model_loaded = DEFAULT_MODEL in names
+        model_loaded = DEFAULT_MODEL in _available_models(payload)
     except Exception as exc:  # noqa: BLE001
         ai_online = False
         model_loaded = False
