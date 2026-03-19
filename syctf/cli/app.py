@@ -217,10 +217,11 @@ class SyctfApp:
 		plugin_parser = commands.add_parser("plugin", help="Manage external marketplace plugins")
 		plugin_subparsers = plugin_parser.add_subparsers(dest="plugin_action", required=True)
 
-		plugin_install = plugin_subparsers.add_parser("install", help="Install plugin pack")
-		plugin_install.add_argument("plugin_name", help="Plugin name, e.g. web-ssti-pack")
+		plugin_install = plugin_subparsers.add_parser("install", help="Install plugin from git URL or marketplace name")
+		plugin_install.add_argument("plugin_source", help="Git URL, owner/repo, or marketplace plugin name")
 
 		plugin_subparsers.add_parser("list", help="List installed plugins")
+		plugin_subparsers.add_parser("diagnostics", help="Show plugin system diagnostics")
 
 		plugin_remove = plugin_subparsers.add_parser("remove", help="Remove installed plugin")
 		plugin_remove.add_argument("plugin_name", help="Installed plugin name")
