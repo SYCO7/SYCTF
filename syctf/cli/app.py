@@ -88,6 +88,24 @@ class SyctfApp:
 		if args.command == "bench":
 			return run_benchmark(self, args)
 
+		if args.command == "auto-decode":
+			run_auto_decode_command = importlib.import_module("syctf.modules.ai.auto_decode").run_auto_decode_command
+			return run_with_guard(
+				lambda: run_auto_decode_command(
+					args.cipher,
+					console=self.console,
+					cache=self.context.cache,
+					model=getattr(args, "model", "deepseek-coder:6.7b"),
+					max_depth=int(getattr(args, "max_depth", 4)),
+					top_n=int(getattr(args, "top", 8)),
+					llm_threshold=float(getattr(args, "llm_threshold", 0.72)),
+					script=bool(getattr(args, "script", False)),
+				),
+				console=self.console,
+				logger_name="auto-decode",
+				logger=self.logger,
+			)
+
 		if args.command == "ai":
 			if getattr(args, "ai_action", "") == "exploit":
 				generate_exploit = importlib.import_module("syctf.modules.ai.exploit_generator").generate_exploit
@@ -233,6 +251,23 @@ class SyctfApp:
 		bench_parser.add_argument("--category", default="misc", help="Plugin category for module benchmark")
 		bench_parser.add_argument("--module", default="env-check", help="Module name for benchmark")
 		bench_parser.add_argument("module_args", nargs=argparse.REMAINDER, help="Optional benchmark module args")
+
+		auto_decode_parser = commands.add_parser("auto-decode", help="Heuristic-first cipher auto decoder")
+		auto_decode_parser.add_argument("cipher", help="Ciphertext value to decode")
+		auto_decode_parser.add_argument("--max-depth", type=int, default=4, help="Transform chain depth")
+		auto_decode_parser.add_argument("--top", type=int, default=8, help="How many ranked candidates to show")
+		auto_decode_parser.add_argument(
+			"--llm-threshold",
+			type=float,
+			default=0.72,
+			help="LLM fallback threshold (0.0-1.0) based on best heuristic score",
+		)
+		auto_decode_parser.add_argument("--model", default="deepseek-coder:6.7b", help="Ollama model name")
+		auto_decode_parser.add_argument(
+			"--script",
+			action="store_true",
+			help="Generate Python script that reproduces the best decode chain",
+		)
 
 		commands.add_parser("ai-setup", help="Setup local AI environment for SYCTF")
 		ai_parser = commands.add_parser("ai", help="AI-powered helper commands")
