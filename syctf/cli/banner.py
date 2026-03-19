@@ -15,7 +15,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
-from syctf.ai.client import get_ollama_client, get_ollama_host
+from syctf.ai.client import get_ai_connection_diagnostics
 from syctf.core.plugin_marketplace import PluginManager
 from syctf import modules
 
@@ -46,6 +46,8 @@ class StartupDiagnostics:
     """Runtime diagnostics displayed during startup."""
 
     python_version: str
+    connected_host: str | None
+    latency_ms: float | None
     ai_engine_online: bool
     model_loaded: bool
     plugins_loaded: int
@@ -79,42 +81,9 @@ def _collect_diagnostics() -> StartupDiagnostics:
     """Collect startup diagnostics with short network timeout for fast render."""
 
     pyver = f"{platform.python_version()} ({platform.python_implementation()})"
-    ai_online = False
-    model_loaded = False
-
-    def _available_models(payload: object) -> list[str]:
-        models_any = getattr(payload, "models", None)
-        if models_any is None and isinstance(payload, dict):
-            models_any = payload.get("models", [])
-        if models_any is None:
-            models_any = []
-
-        out: list[str] = []
-        for item in models_any:
-            name = ""
-            if isinstance(item, str):
-                name = item
-            elif isinstance(item, dict):
-                name = str(item.get("model") or item.get("name") or "")
-            else:
-                name = str(getattr(item, "model", "") or getattr(item, "name", ""))
-            name = name.strip()
-            if name and name not in out:
-                out.append(name)
-        return out
-
-    try:
-        client = get_ollama_client(timeout=0.25)
-        payload = client.list()
-        ai_online = True
-        model_loaded = DEFAULT_MODEL in _available_models(payload)
-    except Exception as exc:  # noqa: BLE001
-        ai_online = False
-        model_loaded = False
-        print(
-            f"[SYCTF AI] Ollama diagnostics unavailable for {get_ollama_host()}: "
-            f"{type(exc).__name__}: {exc}"
-        )
+    ai_diag = get_ai_connection_diagnostics(model=DEFAULT_MODEL)
+    ai_online = ai_diag.connected_host is not None
+    model_loaded = ai_diag.model_available
 
     manager = PluginManager()
     plugins_loaded = len(manager.list_plugins())
@@ -122,6 +91,8 @@ def _collect_diagnostics() -> StartupDiagnostics:
 
     return StartupDiagnostics(
         python_version=pyver,
+        connected_host=ai_diag.connected_host,
+        latency_ms=ai_diag.latency_ms,
         ai_engine_online=ai_online,
         model_loaded=model_loaded,
         plugins_loaded=plugins_loaded,
@@ -166,10 +137,14 @@ def _diagnostics_panel(diag: StartupDiagnostics) -> Panel:
 
     ai_text = "ONLINE" if diag.ai_engine_online else "OFFLINE"
     model_text = "LOADED" if diag.model_loaded else "NOT LOADED"
+    host_text = diag.connected_host or "unavailable"
+    latency_text = f"{diag.latency_ms:.1f} ms" if diag.latency_ms is not None else "unavailable"
 
     lines = [
         _status_line(True, "Python", diag.python_version),
         _status_line(diag.ai_engine_online, "AI Engine", ai_text),
+        _status_line(diag.connected_host is not None, "Connected host", host_text, warn=True),
+        _status_line(diag.latency_ms is not None, "Latency", latency_text, warn=True),
         _status_line(diag.model_loaded, "Ollama Model", model_text, warn=True),
         _status_line(diag.plugins_loaded > 0, "Plugins", str(diag.plugins_loaded), warn=True),
         _status_line(diag.modules_available > 0, "Modules", str(diag.modules_available), warn=True),

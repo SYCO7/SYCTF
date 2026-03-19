@@ -4,32 +4,7 @@ import psutil
 from rich import print
 from rich.panel import Panel
 
-from syctf.ai.client import get_ollama_client, get_ollama_host
-
-
-def _available_models(payload) -> list[str]:
-    """Extract model names from typed or dict Ollama list payloads."""
-
-    models_any = getattr(payload, "models", None)
-    if models_any is None and isinstance(payload, dict):
-        models_any = payload.get("models", [])
-    if models_any is None:
-        models_any = []
-
-    available: list[str] = []
-    for item in models_any:
-        name = ""
-        if isinstance(item, str):
-            name = item
-        elif isinstance(item, dict):
-            name = str(item.get("model") or item.get("name") or "")
-        else:
-            name = str(getattr(item, "model", "") or getattr(item, "name", ""))
-
-        name = name.strip()
-        if name and name not in available:
-            available.append(name)
-    return available
+from syctf.ai.client import get_ai_connection_diagnostics
 
 
 def detect_resources():
@@ -65,38 +40,39 @@ def check_ollama_installed():
 
 
 def check_ollama_server():
-    host = get_ollama_host()
-    client = get_ollama_client(timeout=2.0)
-    try:
-        client.list()
-        return True
-    except Exception as exc:  # noqa: BLE001
-        print("AI engine offline.")
-        print(f"Configured host: {host}")
-        print(f"Error: {type(exc).__name__}: {exc}")
-        return False
+    diagnostics = get_ai_connection_diagnostics(model="")
+    return diagnostics.connected_host is not None
 
 
 def model_installed(model):
-    host = get_ollama_host()
-    client = get_ollama_client(timeout=3.0)
-    try:
-        payload = client.list()
-        available = _available_models(payload)
-        if not available:
-            print("Model list is empty.")
-            print(f"Configured host: {host}")
-            return False
-        if model not in available:
-            print(f"Model missing: {model}")
-            print(f"Available models: {available}")
-            return False
-        return True
-    except Exception as exc:  # noqa: BLE001
-        print("AI engine offline.")
-        print(f"Configured host: {host}")
-        print(f"Error: {type(exc).__name__}: {exc}")
-        return False
+    diagnostics = get_ai_connection_diagnostics(model=model)
+    return diagnostics.model_available
+
+
+def show_diagnostics(model: str) -> None:
+    """Render resolver diagnostics panel for connection and model readiness."""
+
+    diagnostics = get_ai_connection_diagnostics(model=model)
+    connected = diagnostics.connected_host or "unavailable"
+    latency = (
+        f"{diagnostics.latency_ms:.1f} ms"
+        if diagnostics.latency_ms is not None
+        else "unavailable"
+    )
+    model_state = "available" if diagnostics.model_available else "missing"
+
+    print(
+        Panel(
+            f"[green]✔ Connected host:[/green] {connected}\n"
+            f"[green]✔ Latency:[/green] {latency}\n"
+            f"[green]✔ Model availability:[/green] {model_state}",
+            title="AI Diagnostics",
+            border_style="cyan",
+        )
+    )
+
+    if diagnostics.available_models:
+        print(f"Available models: {diagnostics.available_models}")
 
 
 def pull_model(model):
@@ -116,6 +92,7 @@ def run_ai_setup():
     model = recommend_model(ram)
 
     print(f"\nRecommended model: [yellow]{model}[/yellow]\n")
+    show_diagnostics(model)
 
     if not check_ollama_installed():
         print("[red]Ollama not installed.[/red]")
@@ -123,7 +100,7 @@ def run_ai_setup():
         return
 
     if not check_ollama_server():
-        print("[red]Ollama server not running.[/red]")
+        print("[yellow]AI engine offline — continuing without AI.[/yellow]")
         print("Run: ollama serve")
         return
 
