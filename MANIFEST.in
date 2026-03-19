@@ -1,0 +1,6 @@
+recursive-include modules *.py
+recursive-include modules *.json
+recursive-include modules *.txt
+recursive-include assets *
+recursive-include syctf/config *.yaml
+

@@ -1,0 +1,15 @@
+{
+  "owner": "Tanmoy Mondal",
+  "github": "https://github.com/<USERNAME>",
+  "linkedin": "https://linkedin.com/in/<USERNAME>",
+  "portfolio": "https://<YOURWEBSITE>",
+  "request_timeout": 8.0,
+  "connect_timeout": 1.5,
+  "max_threads": 200,
+  "user_agent": "SYCTF/1.0",
+  "default_wordlist": "examples/wordlist.txt",
+  "ai_module_enabled": false,
+  "ai_auto_run": true,
+  "remote_pack_enabled": false,
+  "writeup_generator_enabled": false
+}
