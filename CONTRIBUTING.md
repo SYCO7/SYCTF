@@ -30,7 +30,7 @@ pip install -r requirements-dev.txt
 
 ## Pull Request Checklist
 
-- [ ] Code runs locally (`python syctf.py --help`)
+- [ ] Code runs locally (`python -m syctf --help`)
 - [ ] Relevant tests pass
 - [ ] Documentation is updated if needed
 - [ ] No secrets, local paths, or generated artifacts included

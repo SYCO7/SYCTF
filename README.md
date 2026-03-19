@@ -60,13 +60,13 @@ pip install -r requirements.txt
 ### 5. Verify Installation
 
 ```bash
-python syctf.py --help
+python -m syctf --help
 ```
 
 ### 6. Start SYCTF Shell
 
 ```bash
-python syctf.py shell
+python -m syctf shell
 ```
 
 ## 4. 🤖 Setup AI (Offline)
@@ -83,10 +83,10 @@ ollama pull deepseek-coder
 3. Run SYCTF AI setup:
 
 ```bash
-python syctf.py ai-setup
+python -m syctf ai-setup
 ```
 
-If you use the shell command alias instead of `python syctf.py`, you can run:
+If you use the shell command alias instead of `python -m syctf`, you can run:
 
 ```bash
 syctf ai-setup
@@ -97,7 +97,7 @@ syctf ai-setup
 Start shell mode (works on every platform without PATH setup):
 
 ```bash
-python syctf.py shell
+python -m syctf shell
 ```
 
 You can also use the shorter command after installing an entrypoint:
@@ -121,9 +121,9 @@ syctf ai exploit ./chall
 If `syctf` is not on PATH yet, use:
 
 ```bash
-python syctf.py shell
-python syctf.py misc smart-decode SGVsbG8=
-python syctf.py ai exploit ./chall
+python -m syctf shell
+python -m syctf misc smart-decode SGVsbG8=
+python -m syctf ai exploit ./chall
 ```
 
 ## 6. 🗂 Workspace
