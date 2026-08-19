@@ -17,6 +17,8 @@ CATEGORY_PLAYBOOKS: dict[str, list[str]] = {
     "pwn":       ["identify", "strings", "entropy"],
     "web":       ["classify-text", "strings"],
     "forensics": ["identify", "entropy", "strings", "hashes"],
+    "mobile":    ["identify", "strings", "entropy"],
+    "cloud":     ["classify-text", "strings"],
     "osint":     ["classify-text"],
     "misc":      ["identify", "classify-text", "strings"],
     "unknown":   ["identify", "entropy", "strings", "classify-text"],
@@ -29,6 +31,8 @@ RECOMMENDED_MODULES: dict[str, list[str]] = {
     "pwn":       ["pwn/elf-analyze", "pwn/cyclic", "pwn/offset", "ai/exploit"],
     "web":       ["web/quick-recon", "web/dir-bruteforce", "web/param-fuzzer", "osint/subdomains"],
     "forensics": ["rev/strings-analyzer", "misc/smart-decode"],
+    "mobile":    ["mobile/apk-info", "mobile/apk-secrets", "mobile/dex-strings"],
+    "cloud":     ["cloud/cloud-keys", "cloud/s3-enum", "cloud/imds-ssrf"],
     "osint":     ["osint/subdomains", "osint/dns-recon", "osint/whois", "osint/wayback", "osint/username-enum"],
     "misc":      ["misc/smart-decode", "crypto/auto-decode"],
     "unknown":   ["rev/triage", "misc/smart-decode"],
@@ -37,7 +41,8 @@ RECOMMENDED_MODULES: dict[str, list[str]] = {
 _EXT_CATEGORY = {
     ".zip": "forensics", ".pcap": "forensics", ".pcapng": "forensics",
     ".png": "forensics", ".jpg": "forensics", ".jpeg": "forensics", ".wav": "forensics",
-    ".apk": "rev", ".jar": "rev", ".dex": "rev", ".exe": "rev", ".elf": "pwn", ".so": "rev",
+    ".apk": "mobile", ".ipa": "mobile", ".dex": "mobile",
+    ".jar": "rev", ".exe": "rev", ".elf": "pwn", ".so": "rev",
     ".php": "web", ".js": "web", ".html": "web", ".jsp": "web",
     ".pem": "crypto", ".pub": "crypto", ".enc": "crypto",
 }
@@ -45,7 +50,7 @@ _EXT_CATEGORY = {
 _MAGIC_CATEGORY = {
     "ELF executable": "pwn",
     "PE/DOS executable": "rev",
-    "Android DEX": "rev",
+    "Android DEX": "mobile",
     "ZIP/APK/JAR archive": "forensics",
     "PNG image": "forensics",
     "JPEG image": "forensics",

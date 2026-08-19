@@ -33,6 +33,8 @@ COMMAND_CATEGORY_MAP: dict[str, str] = {
 	"crypto-helper": "crypto",
 	"misc": "misc",
 	"osint": "osint",
+	"mobile": "mobile",
+	"cloud": "cloud",
 }
 
 
