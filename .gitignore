@@ -34,3 +34,6 @@ decoded/*
 build/
 dist/
 *.whl
+
+# local secrets
+.env

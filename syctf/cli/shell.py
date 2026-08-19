@@ -232,6 +232,8 @@ def run_shell(app) -> int:
                     "ai writeup        Generate markdown writeup from session context\n"
                     "ai decode         Enter AI decoding mode\n"
                     "ai recon-plan     Enter AI recon planning mode\n"
+                    "solve <target>    Autonomous solve (file/dir/text/url/host)\n"
+                    "providers         Show configured AI providers (any API key)\n"
                     "auto-decode ...   Forward to top-level auto decode command\n"
                     "help              Show this panel\n"
                     "exit              Exit shell\n\n"
@@ -336,6 +338,49 @@ def run_shell(app) -> int:
             if len(parts) == 2 and parts[1].strip():
                 mode = parts[1].strip().lower()
             ai_session.start(mode=mode)
+            continue
+
+        if lowered in {"providers", "ai-providers"}:
+            from syctf.cli.commands.providers import render_providers
+
+            render_providers(console=app.console)
+            continue
+
+        if lowered.startswith("solve"):
+            try:
+                parts = shlex.split(cmd)
+            except ValueError as exc:
+                app.console.print(f"[bold red]Parse error:[/bold red] {exc}")
+                continue
+            positional = [p for p in parts[1:] if not p.startswith("--")]
+            if not positional:
+                app.console.print(
+                    "[yellow]Usage:[/yellow] solve <target> [--flag-format X] [--budget N] [--ensemble N] [--no-ai]"
+                )
+                continue
+            target = positional[0]
+
+            def _opt(name: str, default: str | None = None) -> str | None:
+                if name in parts:
+                    idx = parts.index(name)
+                    if idx + 1 < len(parts):
+                        return parts[idx + 1]
+                return default
+
+            from syctf.cli.commands.solve import run_solve
+
+            try:
+                run_solve(
+                    target,
+                    flag_format=_opt("--flag-format"),
+                    use_ai="--no-ai" not in parts,
+                    budget=int(_opt("--budget", "12") or 12),
+                    ensemble=int(_opt("--ensemble", "1") or 1),
+                    console=app.console,
+                )
+            except Exception as exc:  # noqa: BLE001
+                app.console.print(f"[bold red]Solve failed:[/bold red] {exc}")
+                app.logger.exception("shell solve failure: %s", exc)
             continue
 
         try:

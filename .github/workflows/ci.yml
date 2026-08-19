@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pytest
+
+      - name: Run tests
+        run: pytest tests/unit -q
+
+      - name: Smoke — provider catalog + autonomous solve
+        run: |
+          python - <<'PY'
+          import base64
+          from syctf.ai.providers import provider_names
+          from syctf.engine import Engine
+          assert len(provider_names()) >= 15
+          seed = base64.b64encode(b"flag{ci_smoke}").decode()
+          r = Engine(use_ai=False).solve(seed, use_ai=False)
+          assert r.solved and r.flag == "flag{ci_smoke}", r
+          print("smoke ok:", r.flag)
+          PY

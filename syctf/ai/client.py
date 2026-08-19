@@ -4,8 +4,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-
-import ollama
+from typing import Any
 
 from syctf.ai.ollama_resolver import OllamaDiagnostics, OllamaResolver, OllamaResolverError
 
@@ -53,8 +52,21 @@ def _read_timeout_seconds() -> float:
     return timeout
 
 
-def get_ollama_client(timeout: float | None = None) -> ollama.Client:
-    """Build and return a configured Ollama client instance."""
+def get_ollama_client(timeout: float | None = None) -> Any:
+    """Build and return a configured Ollama client instance.
+
+    ``ollama`` is imported lazily so SYCTF works with only a hosted API key
+    (Claude/OpenAI/etc.) even when the local ollama package is absent.
+    """
+
+    try:
+        import ollama
+    except ImportError as exc:  # pragma: no cover - install hint path
+        raise OllamaResolverError(
+            "The 'ollama' package is not installed. Install it with "
+            "'pip install ollama' to use local models, or configure a hosted "
+            "provider (see 'syctf ai providers')."
+        ) from exc
 
     host = get_ollama_host()
 

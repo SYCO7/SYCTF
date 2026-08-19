@@ -106,6 +106,23 @@ class SyctfApp:
 				logger=self.logger,
 			)
 
+		if args.command == "solve":
+			from syctf.cli.commands.solve import run_solve
+
+			return run_with_guard(
+				lambda: run_solve(
+					args.target,
+					flag_format=getattr(args, "flag_format", None),
+					use_ai=not bool(getattr(args, "no_ai", False)),
+					budget=int(getattr(args, "budget", 12)),
+					ensemble=int(getattr(args, "ensemble", 1)),
+					console=self.console,
+				),
+				console=self.console,
+				logger_name="solve",
+				logger=self.logger,
+			)
+
 		if args.command == "ai":
 			if getattr(args, "ai_action", "") == "exploit":
 				generate_exploit = importlib.import_module("syctf.modules.ai.exploit_generator").generate_exploit
@@ -124,6 +141,10 @@ class SyctfApp:
 					logger_name="ai:exploit",
 					logger=self.logger,
 				)
+			if getattr(args, "ai_action", "") == "providers":
+				from syctf.cli.commands.providers import render_providers
+
+				return render_providers(console=self.console)
 			if getattr(args, "ai_action", "") == "writeup":
 				generate_writeup = importlib.import_module("syctf.modules.ai.writeup_generator").generate_writeup
 				return run_with_guard(
@@ -139,7 +160,9 @@ class SyctfApp:
 					logger_name="ai:writeup",
 					logger=self.logger,
 				)
-			self.console.print("[yellow]Usage:[/yellow] syctf ai exploit <binary_path> | syctf ai writeup")
+			self.console.print(
+				"[yellow]Usage:[/yellow] syctf ai exploit <binary_path> | syctf ai writeup | syctf ai providers"
+			)
 			return 2
 
 		if not args.command:
@@ -269,6 +292,13 @@ class SyctfApp:
 			help="Generate Python script that reproduces the best decode chain",
 		)
 
+		solve_parser = commands.add_parser("solve", help="Autonomous solve: file, dir, text, url, or host")
+		solve_parser.add_argument("target", help="Path, ciphertext, URL, or host to solve")
+		solve_parser.add_argument("--flag-format", dest="flag_format", help="Custom flag format, e.g. picoCTF{} ")
+		solve_parser.add_argument("--budget", type=int, default=12, help="Max solve steps")
+		solve_parser.add_argument("--ensemble", type=int, default=1, help="Self-consistency samples (anti-hallucination)")
+		solve_parser.add_argument("--no-ai", dest="no_ai", action="store_true", help="Deterministic pass only, no LLM")
+
 		commands.add_parser("ai-setup", help="Setup local AI environment for SYCTF")
 		ai_parser = commands.add_parser("ai", help="AI-powered helper commands")
 		ai_subparsers = ai_parser.add_subparsers(dest="ai_action")
@@ -277,6 +307,7 @@ class SyctfApp:
 		ai_exploit.add_argument("--remote", help="Remote target host:port")
 		ai_writeup = ai_subparsers.add_parser("writeup", help="Generate markdown writeup from session context")
 		ai_writeup.add_argument("--model", default="deepseek-coder:6.7b", help="Ollama model name")
+		ai_subparsers.add_parser("providers", help="Show configured AI providers (any API key)")
 
 		commands.add_parser("shell", help="Start interactive SYCTF shell")
 		return parser
