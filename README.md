@@ -1,17 +1,6 @@
 <div align="center">
 
-<pre>
-  ███████╗██╗   ██╗ ██████╗████████╗███████╗   [AI]
-  ██╔════╝╚██╗ ██╔╝██╔════╝╚══██╔══╝██╔════╝
-  ███████╗ ╚████╔╝ ██║        ██║   █████╗
-  ╚════██║  ╚██╔╝  ██║        ██║   ██╔══╝
-  ███████║   ██║   ╚██████╗   ██║   ██║
-  ╚══════╝   ╚═╝    ╚═════╝   ╚═╝   ╚═╝
-</pre>
-
-### Autonomous · menu-driven · local-first CTF framework
-
-*Point it at a challenge. It thinks with any AI, uses real tools, and only trusts a flag it can prove.*
+<img src="assets/banner.png" alt="SYCTF — autonomous, menu-driven, local-first CTF framework" width="100%">
 
 [![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-MIT-2ea44f)](LICENSE)
@@ -42,18 +31,9 @@ Docker: `docker build -t syctf . && docker run --rm -it syctf`
 
 Run `syctf` (no arguments) and the menu opens:
 
-```text
-╭──────────────── MAIN MENU ────────────────╮
-│  [1] 🎯 Autonomous Solve                   │
-│  [2] 🤖 Autonomous Agent                   │
-│  [3] 🔐 Crypto   [4] 💥 Pwn   [5] 🌐 Web   │
-│  [6] 🧩 Rev  [7] 🕵️ Forensics  [8] 📱 Mobile│
-│  [9] ☁️ Cloud   [10] 🔎 OSINT              │
-│ [11] 📡 Recon … [15] 🧠 AI Providers       │
-│  [0] 🚪 Exit                               │
-╰────────────────────────────────────────────╯
-syctf ▸ select #:
-```
+<div align="center">
+<img src="assets/menu.png" alt="SYCTF main menu" width="72%">
+</div>
 
 Pick a category → pick a module → it prompts for each argument → runs. Everything is also a direct command:
 
