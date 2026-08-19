@@ -70,6 +70,10 @@ class Reasoner:
                 best = self.detector.best(self.detector.scan("\n".join(obs.flags)))
                 if best:
                     self._record_flag(ctx, best.value, f"collector:{tool}")
+            # Surface planted decoys so we keep looking instead of stopping.
+            decoys = self.detector.decoys(self.detector.scan(obs.output))
+            if decoys and not ctx.solved:
+                ctx.log(f"[decoy] ignored planted decoy(s): {[d.value for d in decoys]}")
 
         # 2) AI reasoning pass over the collected evidence (verified).
         used_ai = False

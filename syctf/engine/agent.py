@@ -197,10 +197,13 @@ class AgentOrchestrator:
             status = "ok" if call.ok else "FAIL"
             transcript.append(f"[{step}] ran {tool} ({status}); output: {call.output[:600]}")
 
-            # grounded flag from real tool output
+            # grounded flag from real tool output (skip templates and decoys)
             for hit in self.detector.scan(call.output):
-                if not hit.placeholder:
+                if hit.real:
                     return AgentResult(True, hit.value, step, transcript, calls)
+            decoys = self.detector.decoys(self.detector.scan(call.output))
+            if decoys:
+                transcript.append(f"[decoy] ignored planted decoy(s): {[d.value for d in decoys]}")
             if self.context.cache.get("flag"):
                 return AgentResult(True, str(self.context.cache["flag"]), step, transcript, calls)
 

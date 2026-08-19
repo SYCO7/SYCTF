@@ -100,32 +100,41 @@ def seg(*pairs, bold=False):
     return [(t, c, bold) for t, c in pairs]
 
 
+def _menu(t: "Term") -> None:
+    t.out(seg(("  SYCTF · MAIN MENU", C["cyan"]), bold=True))
+    t.out(seg(("   [1] ", C["cyan"]), ("Autonomous Solve", C["flag"]),
+              ("    [2] ", C["cyan"]), ("Autonomous Agent", C["flag"])))
+    t.out(seg(("   [3] Crypto   [4] Pwn   [5] Web   [7] Forensics", C["cmd"])))
+    t.out(seg(("   [8] Mobile   [9] Cloud   [10] OSINT   [14] AI Providers", C["cmd"])))
+    t.out(seg(("   [0] Exit", C["dim"])))
+
+
 def build() -> Term:
     t = Term()
     t.hold(6)
 
-    # 1) autonomous solve
-    t.type_cmd("$ ", 'syctf solve "ZmxhZ3tzeWN0Zl9pc19saXZlfQ=="')
-    t.out(seg(("  [1] identify      ", C["dim"]), ("no file", C["dim"])))
-    t.out(seg(("  [2] classify-text ", C["dim"]), ("base64-like", C["cyan"])))
-    t.out(seg(("  [3] auto-decode   ", C["dim"]), ("decoded via base64", C["cyan"])))
+    # --- fully menu-driven: launch shows the menu ---
+    _menu(t)
+    t.type_cmd("syctf ▸ select #: ", "1")            # pick Autonomous Solve
+    t.out(seg(("▸ Autonomous Solve", C["magenta"]), bold=True))
+    t.type_cmd("  target ▸ ", "ZmxhZ3tzeWN0Zl9pc19saXZlfQ==")
+    t.out(seg(("  [1] classify-text ", C["dim"]), ("base64-like", C["cyan"])))
+    t.out(seg(("  [2] auto-decode   ", C["dim"]), ("decoded via base64", C["cyan"])))
     t.out(seg(("  FLAG (verified) ", C["flag"]), ("flag{syctf_is_live}", C["flag"]), bold=True), hold=14)
     t.blank()
 
-    # 2) autonomous agent driving real modules
-    t.type_cmd("$ ", 'syctf agent ./pwn --goal "get the flag"')
-    t.out(seg(("  [1] pwn/rop-finder    ", C["dim"]), ("pop rdi; ret @ 0x401234", C["cyan"])))
+    # --- back to menu, pick the autonomous agent ---
+    _menu(t)
+    t.type_cmd("syctf ▸ select #: ", "2")            # pick Autonomous Agent
+    t.out(seg(("▸ Autonomous Agent", C["magenta"]), bold=True))
+    t.out(seg(("  [1] pwn/rop-finder     ", C["dim"]), ("pop rdi; ret @ 0x401234", C["cyan"])))
     t.out(seg(("  [2] crypto/rsa-attacks ", C["dim"]), ("factored n (Fermat)", C["cyan"])))
-    t.out(seg(("  [3] pwn/fmtstr        ", C["dim"]), ("%hhn write payload built", C["cyan"])))
-    t.out(seg(("  [guard] ", C["yellow"]), ("rejected ungrounded flag claim", C["yellow"])))
-    t.out(seg(("  FLAG (verified) ", C["flag"]), ("flag{autonomous_win}", C["flag"]), bold=True), hold=14)
+    t.out(seg(("  [guard] ", C["yellow"]), ("ignored decoy flag{try_harder}", C["yellow"])))
+    t.out(seg(("  FLAG (verified) ", C["flag"]), ("flag{autonomous_win}", C["flag"]), bold=True), hold=16)
     t.blank()
 
-    # 3) bring any AI key
-    t.type_cmd("$ ", "syctf ai providers")
-    t.out(seg(("  ollama  anthropic  openai  gemini  groq  nvidia", C["magenta"])))
-    t.out(seg(("  openrouter deepseek mistral together xai ... ", C["magenta"]), ("(17 backends)", C["dim"])))
-    t.out(seg(("  local-first · bring any key · anti-hallucination", C["cyan"]), bold=True), hold=18)
+    # --- any AI, anywhere ---
+    t.out(seg(("  17 AI providers · local-first · proves the flag before it trusts it", C["cyan"]), bold=True), hold=20)
     t.hold(10)
     return t
 

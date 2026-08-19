@@ -74,7 +74,7 @@ class PcapExtractPlugin:
         blob = b"\n".join(packets)
         detector = FlagDetector()
 
-        flags = {h.value for h in detector.scan_bytes(blob) if not h.placeholder}
+        flags = {h.value for h in detector.scan_bytes(blob) if h.real}
         if flags:
             context.console.print("[bold green]Flags:[/bold green]")
             for flag in sorted(flags):

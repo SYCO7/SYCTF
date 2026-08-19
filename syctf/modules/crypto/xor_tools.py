@@ -78,7 +78,7 @@ class XorToolsPlugin:
         for k in range(256):
             candidate = _xor(data, bytes([k]))
             for hit in detector.scan(candidate.decode("latin-1", "ignore")):
-                if not hit.placeholder:
+                if hit.real:
                     context.console.print(f"[bold green]FLAG (single-byte key=0x{k:02x}):[/bold green] {hit.value}")
                     context.cache["flag"] = hit.value
                     return 0
@@ -124,7 +124,7 @@ class XorToolsPlugin:
     def _emit(self, context, detector, plaintext: bytes, label: str, *, quiet: bool = False) -> None:
         text = plaintext.decode("latin-1", "ignore")
         for hit in detector.scan(text):
-            if not hit.placeholder:
+            if hit.real:
                 context.console.print(f"[bold green]FLAG ({label}):[/bold green] {hit.value}")
                 context.cache["flag"] = hit.value
                 return

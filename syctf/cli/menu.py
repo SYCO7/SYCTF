@@ -1,79 +1,111 @@
 """Fully menu-driven, numbered interactive interface for SYCTF.
 
-Launch with `syctf menu` (or just `syctf` with no arguments). Everything the
-toolkit can do is reachable by typing a number — categories, modules,
-autonomous solve/agent, AI providers, plugins — with per-module argument
-prompts. Styled with Rich; branded with the operator identity.
+Launch with `syctf menu` (or just `syctf` with no arguments). Every capability
+is reachable by number — autonomous solve/agent, all module categories, the AI
+tools, and utilities — grouped and colour-coded, with per-module argument
+prompts. Styled with Rich.
 """
 
 from __future__ import annotations
 
 import argparse
 
-from rich.console import Console
+from rich.console import Console, Group
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
+from syctf.cli.banner import GITHUB_URL, LINKEDIN_URL, OWNER, PORTFOLIO_URL
 from syctf.version import __release__, __version__
 
-# Ordered main-menu actions. ("key", emoji, label, kind)
-#   kind: "category" -> module picker, or a named action handled directly.
-_MAIN_MENU = [
-    ("solve", "🎯", "Autonomous Solve", "solve"),
-    ("agent", "🤖", "Autonomous Agent (AI drives real tools)", "agent"),
-    ("crypto", "🔐", "Crypto  (RSA, XOR, decode, hashes)", "category"),
-    ("pwn", "💥", "Pwn  (ROP, format-string, ELF, offsets)", "category"),
-    ("web", "🌐", "Web  (SQLi, XSS, LFI, JWT, recon, fuzz)", "category"),
-    ("rev", "🧩", "Reverse Engineering  (triage, strings)", "category"),
-    ("forensics", "🕵️", "Forensics  (stego, zip-crack, pcap)", "category"),
-    ("mobile", "📱", "Mobile  (APK info, secrets, DEX)", "category"),
-    ("cloud", "☁️", "Cloud  (S3, IMDS-SSRF, cloud keys)", "category"),
-    ("osint", "🔎", "OSINT  (subdomains, DNS, whois, wayback)", "category"),
-    ("recon", "📡", "Recon  (ports, headers, robots)", "category"),
-    ("misc", "🧰", "Misc / Decode", "category"),
-    ("fuzz", "🔤", "Fuzz  (wordlist mutation)", "category"),
-    ("workspace", "🗂️", "Workspace", "category"),
-    ("providers", "🧠", "AI Providers  (bring any key)", "providers"),
-    ("ai-setup", "⚙️", "AI Setup  (local Ollama)", "ai-setup"),
-    ("plugins", "🔌", "Plugins", "plugins"),
+# Grouped menu:  (group title, accent style, [(label, kind), ...])
+# kind: "cat:<category>" opens a module picker; anything else is a named action.
+_GROUPS = [
+    ("🚀  AUTONOMOUS", "bright_green", [
+        ("Autonomous Solve  — ingest → tools → verified flag", "solve"),
+        ("Autonomous Agent  — AI drives the real modules", "agent"),
+    ]),
+    ("🎯  CATEGORIES", "bright_cyan", [
+        ("Crypto      — RSA · XOR · decode · hashes", "cat:crypto"),
+        ("Pwn         — ROP · format-string · ELF · offsets", "cat:pwn"),
+        ("Web         — SQLi · XSS · LFI · JWT", "cat:web"),
+        ("Reverse     — triage · strings", "cat:rev"),
+        ("Forensics   — LSB stego · zip-crack · pcap", "cat:forensics"),
+        ("Mobile      — APK · AXML manifest · DEX", "cat:mobile"),
+        ("Cloud       — S3 · IMDS-SSRF · cloud keys", "cat:cloud"),
+        ("OSINT       — subdomains · DNS · whois · wayback", "cat:osint"),
+        ("Recon       — ports · headers · robots", "cat:recon"),
+        ("Fuzz        — wordlist mutation", "cat:fuzz"),
+        ("Misc / Decode", "cat:misc"),
+    ]),
+    ("🧠  AI", "magenta", [
+        ("AI Providers   — 17 backends, bring any key", "providers"),
+        ("AI Setup       — local Ollama", "ai-setup"),
+        ("AI Exploit     — generate an exploit skeleton", "ai-exploit"),
+        ("AI Writeup     — markdown writeup from session", "ai-writeup"),
+    ]),
+    ("🧰  TOOLS", "yellow", [
+        ("Auto-Decode    — multi-layer heuristic decoder", "auto-decode"),
+        ("Workspace      — target / session state", "cat:workspace"),
+        ("Plugins        — install & manage", "plugins"),
+        ("About / Author", "about"),
+    ]),
 ]
+
+
+def _flatten():
+    items: list[tuple[str, str]] = []  # (kind, label)
+    layout: list[tuple] = []           # ('h', title, style) | ('r', num, label)
+    n = 0
+    for title, style, rows in _GROUPS:
+        layout.append(("h", title, style))
+        for label, kind in rows:
+            n += 1
+            items.append((kind, label))
+            layout.append(("r", n, label))
+    return items, layout
+
+
+_ITEMS, _LAYOUT = _flatten()
 
 
 def _header(console: Console) -> None:
     title = Text()
-    title.append("  SYCTF ", style="bold bright_green")
+    title.append(" SYCTF ", style="bold bright_green")
     title.append(f"v{__version__} ", style="bold cyan")
-    title.append(f"“{__release__}”", style="bold bright_cyan")
-    title.append("   ·  Autonomous, menu-driven CTF framework", style="dim")
+    title.append(f"“{__release__}” ", style="bold bright_cyan")
+    title.append("· pick a number", style="dim")
     console.print(Panel(title, border_style="bright_cyan", padding=(0, 1)))
 
 
-def _render_main_menu(console: Console) -> None:
-    table = Table.grid(padding=(0, 2))
-    table.add_column(justify="right", style="bold bright_cyan", no_wrap=True)
-    table.add_column(style="white")
-    for i, (_key, emoji, label, _kind) in enumerate(_MAIN_MENU, 1):
-        table.add_row(f"[{i}]", f"{emoji}  {label}")
-    table.add_row("[0]", "🚪  Exit")
-    console.print(Panel(table, title="[bold bright_cyan]MAIN MENU[/bold bright_cyan]", border_style="cyan", padding=(1, 2)))
+def _render_menu(console: Console) -> None:
+    body: list = []
+    for entry in _LAYOUT:
+        if entry[0] == "h":
+            body.append(Text(f"\n{entry[1]}", style=f"bold {entry[2]}"))
+        else:
+            _, num, label = entry
+            line = Text()
+            line.append(f"  [{num:>2}] ", style="bold bright_cyan")
+            line.append(label, style="white")
+            body.append(line)
+    body.append(Text("\n  [ 0] ", style="bold red").append("Exit", style="bold white"))
+    console.print(Panel(Group(*body), title="[bold bright_cyan]MAIN MENU[/bold bright_cyan]", border_style="cyan", padding=(1, 2)))
 
 
 def _prompt_module_args(console: Console, plugin) -> list[str] | None:
-    """Interactively collect argv for a module from its argparse spec."""
-
     parser = argparse.ArgumentParser(add_help=False)
     plugin.add_arguments(parser)
     positionals: list[str] = []
     options: list[str] = []
-    console.print(f"[dim]Configure [/dim][bold green]{plugin.name}[/bold green][dim] — blank uses the default.[/dim]")
+    console.print(f"[dim]Configure [/dim][bold green]{plugin.name}[/bold green][dim] — blank = default.[/dim]")
     for action in parser._actions:  # noqa: SLF001
         if action.dest in ("help", "_help"):
             continue
         opt = action.option_strings[0] if action.option_strings else None
         required = bool(getattr(action, "required", False))
         help_text = action.help or ""
-        if action.nargs == 0:  # store_true flag
+        if action.nargs == 0:
             ans = console.input(f"  [cyan]{opt}[/cyan] — {help_text} [dim](y/N)[/dim]: ").strip().lower()
             if ans in ("y", "yes", "1", "true"):
                 options.append(opt)
@@ -87,10 +119,7 @@ def _prompt_module_args(console: Console, plugin) -> list[str] | None:
                 console.print("  [yellow]Required value missing — cancelled.[/yellow]")
                 return None
             continue
-        if opt:
-            options += [opt, value]
-        else:
-            positionals.append(value)
+        (options.extend([opt, value]) if opt else positionals.append(value))
     return positionals + options
 
 
@@ -100,7 +129,6 @@ def _run_category(app, category: str) -> None:
     if not plugins:
         console.print(f"[yellow]No modules under {category}.[/yellow]")
         return
-
     ordered = sorted(plugins.items())
     table = Table(title=f"[bold]{category.upper()} modules[/bold]", border_style="cyan")
     table.add_column("#", style="bold bright_cyan", no_wrap=True)
@@ -110,18 +138,13 @@ def _run_category(app, category: str) -> None:
         table.add_row(str(i), name, getattr(plugin, "description", ""))
     console.print(table)
 
-    choice = console.input("[bold cyan]Pick module # (or Enter to go back):[/bold cyan] ").strip()
-    if not choice:
+    choice = console.input("[bold cyan]Pick module # (Enter = back):[/bold cyan] ").strip()
+    if not choice or not choice.isdigit() or not (1 <= int(choice) <= len(ordered)):
         return
-    if not choice.isdigit() or not (1 <= int(choice) <= len(ordered)):
-        console.print("[yellow]Invalid choice.[/yellow]")
-        return
-
     name, plugin = ordered[int(choice) - 1]
     argv = _prompt_module_args(console, plugin)
     if argv is None:
         return
-
     parser = argparse.ArgumentParser(prog=name, add_help=False)
     plugin.add_arguments(parser)
     try:
@@ -165,30 +188,98 @@ def _run_agent(app) -> None:
     run_agent(app, target, goal=goal, budget=int(budget) if budget.isdigit() else 10)
 
 
+def _run_auto_decode(app) -> None:
+    console = app.console
+    cipher = console.input("[bold cyan]Ciphertext to decode:[/bold cyan] ").strip()
+    if not cipher:
+        return
+    script = console.input("[cyan]Emit reproducer script?[/cyan] [dim](y/N)[/dim]: ").strip().lower() in ("y", "yes")
+    from syctf.modules.ai.auto_decode import run_auto_decode_command
+
+    console.rule("[bold green]auto-decode[/bold green]")
+    try:
+        run_auto_decode_command(cipher, console=console, cache=app.context.cache, script=script)
+    except Exception as exc:  # noqa: BLE001
+        console.print(f"[bold red]Auto-decode failed:[/bold red] {exc}")
+
+
+def _run_ai_exploit(app) -> None:
+    console = app.console
+    binary = console.input("[bold cyan]Path to ELF binary:[/bold cyan] ").strip()
+    if not binary:
+        return
+    remote = console.input("[cyan]Remote host:port[/cyan] [dim](blank = none)[/dim]: ").strip() or None
+    from syctf.modules.ai.exploit_generator import generate_exploit
+
+    console.rule("[bold green]AI exploit skeleton[/bold green]")
+    try:
+        generate_exploit(binary, remote=remote, workspace_root=app.context.cache.get("workspace_root"),
+                         console=console, cache=app.context.cache)
+    except Exception as exc:  # noqa: BLE001
+        console.print(f"[bold red]Exploit generation failed:[/bold red] {exc}")
+
+
+def _run_ai_writeup(app) -> None:
+    console = app.console
+    from syctf.modules.ai.writeup_generator import generate_writeup
+
+    console.rule("[bold green]AI writeup[/bold green]")
+    try:
+        generate_writeup(cache=app.context.cache, console=console)
+    except Exception as exc:  # noqa: BLE001
+        console.print(f"[bold red]Writeup failed:[/bold red] {exc}")
+
+
+def _about(console: Console) -> None:
+    grid = Table.grid(padding=(0, 2))
+    grid.add_column(style="bold green", justify="right")
+    grid.add_column(style="white")
+    grid.add_row("Tool", f"SYCTF v{__version__} “{__release__}”")
+    grid.add_row("Author", f"[bold white]{OWNER}[/bold white]")
+    grid.add_row("GitHub", f"[link={GITHUB_URL}]{GITHUB_URL}[/link]")
+    grid.add_row("LinkedIn", f"[link={LINKEDIN_URL}]{LINKEDIN_URL}[/link]")
+    grid.add_row("Portfolio", f"[link={PORTFOLIO_URL}]{PORTFOLIO_URL}[/link]")
+    console.print(Panel(grid, title="[bold bright_cyan]About SYCTF[/bold bright_cyan]", border_style="bright_cyan", padding=(1, 2)))
+
+
+def _plugins(console: Console) -> None:
+    from syctf.core.plugin_marketplace import PluginManager
+
+    for name in PluginManager().list_plugins() or ["(none installed)"]:
+        console.print(f"  • {name}")
+    console.print("[dim]Install: syctf plugin install <git-url | name>[/dim]")
+
+
 def run_menu(app) -> int:
     """Top-level interactive numbered menu loop."""
 
     console: Console = app.console
     while True:
         _header(console)
-        _render_main_menu(console)
-        choice = console.input("[bold bright_green]syctf ▸ select #:[/bold bright_green] ").strip()
+        _render_menu(console)
+        choice = console.input("[bold bright_green]syctf ▸ select #:[/bold bright_green] ").strip().lower()
 
         if choice in ("0", "q", "exit", "quit"):
             console.print("[dim]bye — happy hacking.[/dim]")
             return 0
-        if not choice.isdigit() or not (1 <= int(choice) <= len(_MAIN_MENU)):
+        if not choice.isdigit() or not (1 <= int(choice) <= len(_ITEMS)):
             console.print("[yellow]Enter a number from the menu.[/yellow]\n")
             continue
 
-        _key, _emoji, _label, kind = _MAIN_MENU[int(choice) - 1]
+        kind, _label = _ITEMS[int(choice) - 1]
         try:
-            if kind == "category":
-                _run_category(app, _key)
+            if kind.startswith("cat:"):
+                _run_category(app, kind.split(":", 1)[1])
             elif kind == "solve":
                 _run_solve(app)
             elif kind == "agent":
                 _run_agent(app)
+            elif kind == "auto-decode":
+                _run_auto_decode(app)
+            elif kind == "ai-exploit":
+                _run_ai_exploit(app)
+            elif kind == "ai-writeup":
+                _run_ai_writeup(app)
             elif kind == "providers":
                 from syctf.cli.commands.providers import render_providers
 
@@ -201,11 +292,9 @@ def run_menu(app) -> int:
                 except TypeError:
                     run_ai_setup()
             elif kind == "plugins":
-                from syctf.core.plugin_marketplace import PluginManager
-
-                for name in PluginManager().list_plugins() or ["(none installed)"]:
-                    console.print(f"  • {name}")
-                console.print("[dim]Install with: syctf plugin install <git-url|name>[/dim]")
+                _plugins(console)
+            elif kind == "about":
+                _about(console)
         except KeyboardInterrupt:
             console.print("\n[yellow]Cancelled.[/yellow]")
 

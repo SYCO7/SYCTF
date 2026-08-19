@@ -64,7 +64,7 @@ class Executor:
             summary, output = handler(ctx)
         except Exception as exc:  # collectors must never crash the loop
             return Observation(step=step, tool=tool, ok=False, summary=f"error: {exc}")
-        flags = [h.value for h in self.detector.scan(output, source=tool) if not h.placeholder]
+        flags = [h.value for h in self.detector.scan(output, source=tool) if h.real]
         return Observation(step=step, tool=tool, ok=True, summary=summary, output=output, flags=flags)
 
     # -- collectors ---------------------------------------------------------
@@ -142,7 +142,7 @@ class Executor:
                     ratio = _printable_ratio(out)
                     text = out.decode("ascii", "ignore")
                     hits = self.detector.scan(text)
-                    real = [h for h in hits if not h.placeholder]
+                    real = [h for h in hits if h.real]
                     new_chain = chain + [name]
                     if real:
                         return (f"decoded via {' -> '.join(new_chain)}", text[:2000])

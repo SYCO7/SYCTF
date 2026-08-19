@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from syctf.flags.patterns import compile_patterns, is_placeholder
+from syctf.flags.patterns import compile_patterns, is_decoy, is_placeholder
 
 
 @dataclass(slots=True)
@@ -15,6 +15,13 @@ class FlagHit:
     value: str
     source: str
     placeholder: bool
+    decoy: bool = False
+
+    @property
+    def real(self) -> bool:
+        """A trustworthy candidate: neither a template nor a planted decoy."""
+
+        return not self.placeholder and not self.decoy
 
 
 class FlagDetector:
@@ -32,7 +39,12 @@ class FlagDetector:
                 value = match.group(0).strip()
                 if value in seen:
                     continue
-                seen[value] = FlagHit(value=value, source=source, placeholder=is_placeholder(value))
+                seen[value] = FlagHit(
+                    value=value,
+                    source=source,
+                    placeholder=is_placeholder(value),
+                    decoy=is_decoy(value),
+                )
         return list(seen.values())
 
     def scan_bytes(self, blob: bytes, *, source: str = "binary", min_len: int = 4) -> list[FlagHit]:
@@ -43,10 +55,18 @@ class FlagDetector:
         return self.scan(text, source=source)
 
     def best(self, hits: list[FlagHit]) -> FlagHit | None:
-        """Pick the most trustworthy hit: real over placeholder, longest body."""
+        """Pick the best *real* flag: never a placeholder or a planted decoy.
 
-        real = [h for h in hits if not h.placeholder]
-        pool = real or hits
-        if not pool:
+        Returns None when every candidate is a template or a decoy — so the
+        engine reports "no flag" instead of a fake one.
+        """
+
+        real = [h for h in hits if h.real]
+        if not real:
             return None
-        return max(pool, key=lambda h: len(h.value))
+        return max(real, key=lambda h: len(h.value))
+
+    def decoys(self, hits: list[FlagHit]) -> list[FlagHit]:
+        """Return the flag-shaped hits that look like planted decoys."""
+
+        return [h for h in hits if h.decoy]

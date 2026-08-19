@@ -69,7 +69,7 @@ class ZipCrackPlugin:
                 except Exception:  # noqa: BLE001
                     continue
                 for hit in detector.scan(blob.decode("latin-1", "ignore")):
-                    if not hit.placeholder:
+                    if hit.real:
                         context.console.print(f"[bold green]FLAG in {name}:[/bold green] {hit.value}")
                         context.cache["flag"] = hit.value
                         return 0

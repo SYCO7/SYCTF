@@ -68,7 +68,7 @@ class ImdsSsrfPlugin:
             marker = "★" if any(k in body for k in ("AccessKeyId", "access_token", "SecretAccessKey", "compute")) else ""
             table.add_row(label, f"{response.status_code} {marker}", snippet)
             for hit in detector.scan(body):
-                if not hit.placeholder:
+                if hit.real:
                     context.console.print(f"[bold green]Flag:[/bold green] {hit.value}")
                     context.cache["flag"] = hit.value
 

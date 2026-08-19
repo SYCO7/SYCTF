@@ -57,7 +57,7 @@ class SteganoPlugin:
             data = extract_lsb(image.pixels, image.channels, nbits=nbits, skip_alpha=skip_alpha)
             text = data.decode("latin-1", "ignore")
             for hit in detector.scan(text):
-                if not hit.placeholder:
+                if hit.real:
                     variant = "RGB only" if skip_alpha else "all channels"
                     context.console.print(f"[bold green]FLAG (LSB {nbits}-bit, {variant}):[/bold green] {hit.value}")
                     context.cache["flag"] = hit.value

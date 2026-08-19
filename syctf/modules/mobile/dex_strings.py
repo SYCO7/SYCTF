@@ -62,7 +62,7 @@ class DexStringsPlugin:
 
         # flags
         detector = FlagDetector()
-        flags = {h.value for h in detector.scan("\n".join(strings)) if not h.placeholder}
+        flags = {h.value for h in detector.scan("\n".join(strings)) if h.real}
         if flags:
             context.console.print("[bold green]Possible flags:[/bold green]")
             for flag in sorted(flags):

@@ -48,10 +48,11 @@ class ConsistencyReport:
 
 @dataclass(slots=True)
 class FlagVerdict:
-    """Which claimed flags survived grounding."""
+    """Which claimed flags survived grounding + decoy screening."""
 
     trusted: list[str] = field(default_factory=list)
     unverified: list[str] = field(default_factory=list)
+    decoys: list[str] = field(default_factory=list)
     reason: str = ""
 
     @property
@@ -117,6 +118,11 @@ class Verifier:
                 verdict.unverified.append(hit.value)
                 self.memory.record("placeholder_flag", hit.value, "looks templated")
                 continue
+            if hit.decoy:
+                # A real-looking but planted decoy: never report it as the answer.
+                verdict.decoys.append(hit.value)
+                self.memory.record("decoy_flag", hit.value, "matches a known decoy marker")
+                continue
             if _normalize(hit.value) in evidence_norm:
                 verdict.trusted.append(hit.value)
             else:
@@ -124,11 +130,42 @@ class Verifier:
                 self.memory.record("ungrounded_flag", hit.value, "not present in tool/file evidence")
         if verdict.trusted:
             verdict.reason = "grounded in evidence"
+        elif verdict.decoys:
+            verdict.reason = "only decoy flag(s) found -- keep looking"
         elif verdict.unverified:
             verdict.reason = "flag(s) not grounded -- treat as unverified"
         else:
             verdict.reason = "no flag detected"
         return verdict
+
+    def verify_flag(
+        self,
+        flag: str,
+        *,
+        expected_sha256: str | None = None,
+        expected_md5: str | None = None,
+        checker=None,
+    ) -> bool:
+        """Definitively confirm a flag against an oracle.
+
+        The only way to be *certain* a flag is real (not a decoy) is to check it
+        against something authoritative: a hash the challenge published, or a
+        checker/submit callback. With no oracle, returns False (cannot prove).
+        """
+
+        import hashlib
+
+        value = flag.strip()
+        if expected_sha256:
+            return hashlib.sha256(value.encode()).hexdigest().lower() == expected_sha256.strip().lower()
+        if expected_md5:
+            return hashlib.md5(value.encode()).hexdigest().lower() == expected_md5.strip().lower()
+        if callable(checker):
+            try:
+                return bool(checker(value))
+            except Exception:  # noqa: BLE001
+                return False
+        return False
 
     # -- guard 2: self-consistency -----------------------------------------
     def self_consistency(self, results: list[ChatResult]) -> ConsistencyReport:

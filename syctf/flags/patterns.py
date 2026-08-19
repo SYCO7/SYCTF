@@ -19,6 +19,17 @@ PLACEHOLDER_MARKERS: tuple[str, ...] = (
     "insert", "todo", "changeme", "<", ">", "…",
 )
 
+# Substrings that mark a *decoy* flag — a real-looking flag deliberately planted
+# in a challenge to mislead automated solvers. These are grounded in the data
+# (so they pass evidence checks) but must never be reported as the answer.
+DECOY_MARKERS: tuple[str, ...] = (
+    "fake", "decoy", "not_the_real", "not_real", "notreal", "nottheflag",
+    "not_the_flag", "try_harder", "tryharder", "keep_looking", "keeplooking",
+    "nope", "wrong", "troll", "bait", "gotcha", "haha", "almost", "so_close",
+    "soclose", "nice_try", "nicetry", "not_here", "nothere", "dummy",
+    "this_is_not", "not_it", "notit", "bogus", "honeypot", "rickroll",
+)
+
 
 def compile_patterns(custom_format: str | None = None) -> list[re.Pattern[str]]:
     """Return compiled flag patterns, optionally prepending a custom format.
@@ -48,3 +59,10 @@ def is_placeholder(candidate: str) -> bool:
 
     low = candidate.lower()
     return any(marker in low for marker in PLACEHOLDER_MARKERS)
+
+
+def is_decoy(candidate: str) -> bool:
+    """True when a real-looking flag is almost certainly a planted decoy."""
+
+    low = candidate.lower()
+    return any(marker in low for marker in DECOY_MARKERS)

@@ -60,7 +60,7 @@ flowchart LR
 
 - **Grounded first** — deterministic tools extract real evidence *before* any token is spent.
 - **Any AI** — local Ollama by default, or Claude / OpenAI / Gemini / Groq / NVIDIA … bring a key, local fallback is automatic.
-- **Honest by design** — a claimed flag is accepted only if it literally appears in tool output. Hallucinated flags are rejected and logged, then fed back as negative examples.
+- **Honest by design** — a flag is accepted only if it literally appears in tool output (never guessed). **Planted decoys** (`fake`, `try_harder`, `not_the_real…`) are recognised and skipped, so SYCTF keeps looking for the real one. Absolute certainty? point it at an oracle — a published hash or a checker — via `verify_flag`.
 - **`agent` mode** — the LLM picks and runs the *actual* SYCTF modules in a loop, not just built-ins.
 
 ---
