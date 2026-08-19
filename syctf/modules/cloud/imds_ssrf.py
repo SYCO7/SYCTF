@@ -49,7 +49,7 @@ class ImdsSsrfPlugin:
         from urllib.parse import quote
 
         timeout = max(6.0, float(getattr(context.config, "request_timeout", 8.0)))
-        detector = FlagDetector()
+        detector = FlagDetector(custom_format=context.cache.get("flag_format"))
         context.logger.info("cloud imds-ssrf url=%s", template)
 
         table = Table(title="SSRF metadata probe")

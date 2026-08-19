@@ -50,7 +50,7 @@ class SteganoPlugin:
             return 1
 
         context.logger.info("forensics stegano file=%s %dx%d ch=%d", path, image.width, image.height, image.channels)
-        detector = FlagDetector()
+        detector = FlagDetector(custom_format=context.cache.get("flag_format"))
         nbits = max(1, min(int(args.bits), 4))
 
         for skip_alpha in (True, False):

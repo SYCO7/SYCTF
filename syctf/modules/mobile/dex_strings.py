@@ -61,7 +61,7 @@ class DexStringsPlugin:
         strings = [s.decode("ascii", "ignore") for s in pattern.findall(joined)]
 
         # flags
-        detector = FlagDetector()
+        detector = FlagDetector(custom_format=context.cache.get("flag_format"))
         flags = {h.value for h in detector.scan("\n".join(strings)) if h.real}
         if flags:
             context.console.print("[bold green]Possible flags:[/bold green]")

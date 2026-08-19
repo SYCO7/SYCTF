@@ -54,13 +54,14 @@ class AgentResult:
 class AgentOrchestrator:
     """Runs the plan→act→observe→verify loop over real modules."""
 
-    def __init__(self, loader, context, router, verifier=None, console: Console | None = None) -> None:
+    def __init__(self, loader, context, router, verifier=None, console: Console | None = None,
+                 flag_format: str | None = None) -> None:
         self.loader = loader
         self.context = context
         self.router = router
         self.verifier = verifier
         self.console = console or Console()
-        self.detector = FlagDetector()
+        self.detector = FlagDetector(custom_format=flag_format or context.cache.get("flag_format"))
         self._registry = self._build_registry()
 
     # -- tool registry ------------------------------------------------------

@@ -6,18 +6,20 @@ from rich.panel import Panel
 from rich.table import Table
 
 
-def run_agent(app, target: str, *, goal: str = "capture the flag", budget: int = 10) -> int:
+def run_agent(app, target: str, *, goal: str = "capture the flag", budget: int = 10, flag_format: str | None = None) -> int:
     """Run the autonomous agent and render the outcome. Returns exit code."""
 
     console = app.console
     from syctf.ai.router import ModelRouter
     from syctf.ai.verifier import Verifier
     from syctf.engine.agent import AgentOrchestrator
+    from syctf.flags.detector import FlagDetector
 
+    flag_format = flag_format or app.context.cache.get("flag_format")
     console.print(Panel(f"SYCTF Agent — goal: [cyan]{goal}[/cyan]  target: [cyan]{target}[/cyan]", border_style="magenta"))
     router = ModelRouter()
-    verifier = Verifier()
-    agent = AgentOrchestrator(app.loader, app.context, router, verifier=verifier, console=console)
+    verifier = Verifier(detector=FlagDetector(custom_format=flag_format))
+    agent = AgentOrchestrator(app.loader, app.context, router, verifier=verifier, console=console, flag_format=flag_format)
     result = agent.run(target, goal=goal, budget=budget)
 
     tools = Table(title="Tools invoked", show_header=True)

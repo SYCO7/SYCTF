@@ -35,6 +35,9 @@ Run `syctf` (no arguments) and the menu opens:
 <img src="assets/menu.png" alt="SYCTF main menu" width="72%">
 </div>
 
+You set the **flag format** once at the start of a challenge (menu → *Set Flag
+Format*, or `--flag-format picoCTF{}`) and every module uses it.
+
 Pick a category → pick a module → it prompts for each argument → runs. Everything is also a direct command:
 
 ```bash
@@ -62,6 +65,11 @@ flowchart LR
 - **Any AI** — local Ollama by default, or Claude / OpenAI / Gemini / Groq / NVIDIA … bring a key, local fallback is automatic.
 - **Honest by design** — a flag is accepted only if it literally appears in tool output (never guessed). **Planted decoys** (`fake`, `try_harder`, `not_the_real…`) are recognised and skipped, so SYCTF keeps looking for the real one. Absolute certainty? point it at an oracle — a published hash or a checker — via `verify_flag`.
 - **`agent` mode** — the LLM picks and runs the *actual* SYCTF modules in a loop, not just built-ins.
+
+> **vs. other AI solvers** (PentestGPT · EnIGMA · CAI …): those are cloud-LLM,
+> single-vendor, and trust the model's answer. SYCTF is **local-first**,
+> **any-provider**, **menu-driven**, and **won't report a flag it can't prove** —
+> decoys and hallucinations are rejected, not submitted.
 
 ---
 

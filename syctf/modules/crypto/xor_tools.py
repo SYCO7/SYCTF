@@ -64,7 +64,7 @@ class XorToolsPlugin:
             context.console.print("[yellow]Empty input.[/yellow]")
             return 0
 
-        detector = FlagDetector()
+        detector = FlagDetector(custom_format=context.cache.get("flag_format"))
 
         if args.key:
             try:

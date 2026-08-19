@@ -72,7 +72,7 @@ class PcapExtractPlugin:
 
         context.logger.info("forensics pcap-extract file=%s packets=%d", path, len(packets))
         blob = b"\n".join(packets)
-        detector = FlagDetector()
+        detector = FlagDetector(custom_format=context.cache.get("flag_format"))
 
         flags = {h.value for h in detector.scan_bytes(blob) if h.real}
         if flags:

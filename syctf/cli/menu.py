@@ -45,6 +45,7 @@ _GROUPS = [
         ("AI Writeup     — markdown writeup from session", "ai-writeup"),
     ]),
     ("🧰  TOOLS", "yellow", [
+        ("Set Flag Format  — e.g. picoCTF{}  (used by every module)", "set-format"),
         ("Auto-Decode    — multi-layer heuristic decoder", "auto-decode"),
         ("Workspace      — target / session state", "cat:workspace"),
         ("Plugins        — install & manage", "plugins"),
@@ -69,13 +70,32 @@ def _flatten():
 _ITEMS, _LAYOUT = _flatten()
 
 
-def _header(console: Console) -> None:
+def _header(app) -> None:
+    console = app.console
+    fmt = app.context.cache.get("flag_format") or "auto-detect"
     title = Text()
     title.append(" SYCTF ", style="bold bright_green")
     title.append(f"v{__version__} ", style="bold cyan")
-    title.append(f"“{__release__}” ", style="bold bright_cyan")
-    title.append("· pick a number", style="dim")
+    title.append(f"“{__release__}”", style="bold bright_cyan")
+    title.append("   ·  flag format: ", style="dim")
+    title.append(fmt, style="bold yellow")
     console.print(Panel(title, border_style="bright_cyan", padding=(0, 1)))
+
+
+def _ask_flag_format(app, *, required: bool = False) -> str | None:
+    """Prompt for the challenge flag format; persist it for every module."""
+
+    console = app.console
+    current = app.context.cache.get("flag_format")
+    hint = f" [dim](current: {current})[/dim]" if current else " [dim](e.g. picoCTF, HTB, flag — blank = auto)[/dim]"
+    value = console.input(f"[bold cyan]Flag format{hint}:[/bold cyan] ").strip()
+    if not value:
+        if required and not current:
+            console.print("[yellow]No format set — using auto-detect.[/yellow]")
+        return current
+    app.context.cache["flag_format"] = value
+    console.print(f"[green]Flag format set:[/green] {value}")
+    return value
 
 
 def _render_menu(console: Console) -> None:
@@ -164,10 +184,10 @@ def _run_category(app, category: str) -> None:
 
 def _run_solve(app) -> None:
     console = app.console
+    fmt = _ask_flag_format(app, required=True)          # challenge start: user gives the format
     target = console.input("[bold cyan]Target (file / text / url / host):[/bold cyan] ").strip()
     if not target:
         return
-    fmt = console.input("[cyan]Flag format[/cyan] [dim](e.g. picoCTF{}, blank=auto)[/dim]: ").strip() or None
     use_ai = console.input("[cyan]Use AI reasoning?[/cyan] [dim](Y/n)[/dim]: ").strip().lower() not in ("n", "no")
     from syctf.cli.commands.solve import run_solve
 
@@ -177,6 +197,7 @@ def _run_solve(app) -> None:
 
 def _run_agent(app) -> None:
     console = app.console
+    fmt = _ask_flag_format(app, required=True)          # challenge start: user gives the format
     target = console.input("[bold cyan]Target:[/bold cyan] ").strip()
     if not target:
         return
@@ -185,7 +206,7 @@ def _run_agent(app) -> None:
     from syctf.cli.commands.agent import run_agent
 
     console.rule("[bold green]autonomous agent[/bold green]")
-    run_agent(app, target, goal=goal, budget=int(budget) if budget.isdigit() else 10)
+    run_agent(app, target, goal=goal, budget=int(budget) if budget.isdigit() else 10, flag_format=fmt)
 
 
 def _run_auto_decode(app) -> None:
@@ -255,7 +276,7 @@ def run_menu(app) -> int:
 
     console: Console = app.console
     while True:
-        _header(console)
+        _header(app)
         _render_menu(console)
         choice = console.input("[bold bright_green]syctf ▸ select #:[/bold bright_green] ").strip().lower()
 
@@ -274,6 +295,8 @@ def run_menu(app) -> int:
                 _run_solve(app)
             elif kind == "agent":
                 _run_agent(app)
+            elif kind == "set-format":
+                _ask_flag_format(app)
             elif kind == "auto-decode":
                 _run_auto_decode(app)
             elif kind == "ai-exploit":

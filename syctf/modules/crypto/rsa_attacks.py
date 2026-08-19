@@ -134,7 +134,7 @@ class RsaAttacksPlugin:
         context.console.print(f"[bold green]Plaintext ({method}):[/bold green]")
         context.console.print(f"  int  : {value}")
         context.console.print(f"  bytes: {printable!r}")
-        for hit in FlagDetector().scan(printable):
+        for hit in FlagDetector(custom_format=context.cache.get("flag_format")).scan(printable):
             if hit.real:
                 context.console.print(f"[bold green]FLAG:[/bold green] {hit.value}")
                 context.cache["flag"] = hit.value

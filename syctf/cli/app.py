@@ -140,6 +140,7 @@ class SyctfApp:
 					args.target,
 					goal=getattr(args, "goal", "capture the flag"),
 					budget=int(getattr(args, "budget", 10)),
+					flag_format=getattr(args, "flag_format", None),
 				),
 				console=self.console,
 				logger_name="agent",
@@ -336,6 +337,7 @@ class SyctfApp:
 		agent_parser.add_argument("target", help="Path, ciphertext, URL, or host to solve")
 		agent_parser.add_argument("--goal", default="capture the flag", help="Objective for the agent")
 		agent_parser.add_argument("--budget", type=int, default=10, help="Max tool calls")
+		agent_parser.add_argument("--flag-format", dest="flag_format", help="Flag format, e.g. picoCTF{}")
 
 		commands.add_parser("menu", help="Launch the interactive numbered menu (default when no command)")
 		commands.add_parser("shell", help="Start interactive SYCTF shell")

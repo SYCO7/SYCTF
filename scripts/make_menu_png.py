@@ -45,8 +45,8 @@ RIGHT = [
     ("r", "14", "AI Providers"), ("r", "15", "AI Setup"),
     ("r", "16", "AI Exploit"), ("r", "17", "AI Writeup"),
     ("h", "TOOLS", YEL),
-    ("r", "18", "Auto-Decode"), ("r", "19", "Workspace"),
-    ("r", "20", "Plugins"), ("r", "21", "About / Author"),
+    ("r", "18", "Set Flag Format"), ("r", "19", "Auto-Decode"),
+    ("r", "20", "Workspace"), ("r", "21", "Plugins"), ("r", "22", "About / Author"),
     ("g", "", None), ("r", "0", "Exit"),
 ]
 

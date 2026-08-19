@@ -38,7 +38,7 @@ class ZipCrackPlugin:
                 words = wl.read_text(errors="ignore").splitlines()
 
         context.logger.info("forensics zip-crack file=%s words=%d", path, len(words))
-        detector = FlagDetector()
+        detector = FlagDetector(custom_format=context.cache.get("flag_format"))
         try:
             zf = zipfile.ZipFile(path)
             target = next((n for n in zf.namelist() if not n.endswith("/")), None)
