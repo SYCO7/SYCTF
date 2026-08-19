@@ -32,6 +32,7 @@ COMMAND_CATEGORY_MAP: dict[str, str] = {
 	"workspace": "workspace",
 	"crypto-helper": "crypto",
 	"misc": "misc",
+	"osint": "osint",
 }
 
 

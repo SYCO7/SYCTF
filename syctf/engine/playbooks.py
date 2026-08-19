@@ -27,9 +27,9 @@ RECOMMENDED_MODULES: dict[str, list[str]] = {
     "crypto":    ["crypto/auto-decode", "misc/smart-decode", "crypto/hash-identifier"],
     "rev":       ["rev/triage", "rev/strings-analyzer", "pwn/elf-analyze"],
     "pwn":       ["pwn/elf-analyze", "pwn/cyclic", "pwn/offset", "ai/exploit"],
-    "web":       ["web/quick-recon", "web/dir-bruteforce", "web/param-fuzzer"],
+    "web":       ["web/quick-recon", "web/dir-bruteforce", "web/param-fuzzer", "osint/subdomains"],
     "forensics": ["rev/strings-analyzer", "misc/smart-decode"],
-    "osint":     ["recon/http-headers", "recon/port-scan"],
+    "osint":     ["osint/subdomains", "osint/dns-recon", "osint/whois", "osint/wayback", "osint/username-enum"],
     "misc":      ["misc/smart-decode", "crypto/auto-decode"],
     "unknown":   ["rev/triage", "misc/smart-decode"],
 }
