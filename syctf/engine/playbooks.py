@@ -26,10 +26,10 @@ CATEGORY_PLAYBOOKS: dict[str, list[str]] = {
 
 # Existing SYCTF modules to reach for next, per category (menu keys).
 RECOMMENDED_MODULES: dict[str, list[str]] = {
-    "crypto":    ["crypto/auto-decode", "misc/smart-decode", "crypto/hash-identifier"],
+    "crypto":    ["crypto/rsa-attacks", "crypto/xor-tools", "crypto/auto-decode", "misc/smart-decode", "crypto/hash-identifier"],
     "rev":       ["rev/triage", "rev/strings-analyzer", "pwn/elf-analyze"],
-    "pwn":       ["pwn/elf-analyze", "pwn/cyclic", "pwn/offset", "ai/exploit"],
-    "web":       ["web/quick-recon", "web/dir-bruteforce", "web/param-fuzzer", "osint/subdomains"],
+    "pwn":       ["pwn/rop-finder", "pwn/fmtstr", "pwn/elf-analyze", "pwn/cyclic", "pwn/offset", "ai/exploit"],
+    "web":       ["web/sqli-probe", "web/xss-probe", "web/lfi-probe", "web/jwt-tool", "web/quick-recon", "web/dir-bruteforce", "osint/subdomains"],
     "forensics": ["rev/strings-analyzer", "misc/smart-decode"],
     "mobile":    ["mobile/apk-info", "mobile/apk-secrets", "mobile/dex-strings"],
     "cloud":     ["cloud/cloud-keys", "cloud/s3-enum", "cloud/imds-ssrf"],
