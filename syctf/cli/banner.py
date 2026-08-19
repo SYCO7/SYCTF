@@ -17,6 +17,7 @@ from rich.text import Text
 
 from syctf.ai.client import get_ai_connection_diagnostics
 from syctf.core.plugin_marketplace import PluginManager
+from syctf.version import __release__, __version__
 from syctf import modules
 
 OWNER = "Tanmoy Mondal"
@@ -24,7 +25,7 @@ GITHUB_URL = "https://github.com/SYCO7"
 LINKEDIN_URL = "https://www.linkedin.com/in/tanmoy-mondal-11070334b/"
 PORTFOLIO_URL = "https://cybersyco.vercel.app/"
 
-VERSION_LABEL = "SYCTF v0.1-alpha"
+VERSION_LABEL = f"SYCTF v{__version__} “{__release__}”"
 AI_MODE_LABEL = "AI Mode Enabled"
 DEFAULT_MODEL = "deepseek-coder:6.7b"
 

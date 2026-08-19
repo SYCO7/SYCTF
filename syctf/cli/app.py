@@ -11,6 +11,7 @@ from rich.console import Console
 
 from syctf.cli.ai_setup import run_ai_setup
 from syctf.cli.banner import render_startup
+from syctf.cli.menu import run_menu
 from syctf.cli.shell import run_shell
 from syctf.core.benchmark import run_benchmark
 from syctf.core.execution import run_with_guard
@@ -75,6 +76,9 @@ class SyctfApp:
 		args = self.parser.parse_args(argv)
 		if not args.no_banner:
 			render_startup(self.console)
+
+		if args.command == "menu":
+			return run_menu(self)
 
 		if args.command == "shell":
 			return run_shell(self)
@@ -185,8 +189,8 @@ class SyctfApp:
 			return 2
 
 		if not args.command:
-			self.parser.print_help()
-			return 0
+			# No subcommand -> launch the interactive numbered menu.
+			return run_menu(self)
 
 		return self.execute_parsed(args)
 
@@ -333,6 +337,7 @@ class SyctfApp:
 		agent_parser.add_argument("--goal", default="capture the flag", help="Objective for the agent")
 		agent_parser.add_argument("--budget", type=int, default=10, help="Max tool calls")
 
+		commands.add_parser("menu", help="Launch the interactive numbered menu (default when no command)")
 		commands.add_parser("shell", help="Start interactive SYCTF shell")
 		return parser
 
