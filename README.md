@@ -134,6 +134,28 @@ menu too: type `solve <target>` inside `syctf shell`.
 
 ---
 
+## 4c) 🤖 Autonomous Agent (the crazy one)
+
+Where `solve` runs safe built-in collectors, **`agent`** lets the LLM drive the
+*real* SYCTF modules as tools — it plans, runs `rsa-attacks` / `rop-finder` /
+`jwt-tool` / `sqli-probe` / `osint` / `mobile` / `cloud`, reads each tool's
+actual output, and loops until it captures a **verified** flag.
+
+```bash
+syctf agent ./challenge.bin
+syctf agent https://ctf.example/login --goal "find SQLi and dump the flag"
+syctf agent token.jwt --budget 15
+```
+
+- The model emits one JSON action per step (`{"tool": "...", "args": {...}}`),
+  SYCTF executes the module, and feeds the real output back as evidence.
+- Every claimed flag is grounded against tool output — invented flags are
+  rejected, so the agent cannot "win" by hallucinating.
+- Needs a reachable AI backend (local Ollama or any hosted key). Available in
+  the shell too: `agent <target>`.
+
+---
+
 ## 5) ⚡ Quick Start Usage
 
 ```bash

@@ -126,6 +126,21 @@ class SyctfApp:
 				logger=self.logger,
 			)
 
+		if args.command == "agent":
+			from syctf.cli.commands.agent import run_agent
+
+			return run_with_guard(
+				lambda: run_agent(
+					self,
+					args.target,
+					goal=getattr(args, "goal", "capture the flag"),
+					budget=int(getattr(args, "budget", 10)),
+				),
+				console=self.console,
+				logger_name="agent",
+				logger=self.logger,
+			)
+
 		if args.command == "ai":
 			if getattr(args, "ai_action", "") == "exploit":
 				generate_exploit = importlib.import_module("syctf.modules.ai.exploit_generator").generate_exploit
@@ -311,6 +326,11 @@ class SyctfApp:
 		ai_writeup = ai_subparsers.add_parser("writeup", help="Generate markdown writeup from session context")
 		ai_writeup.add_argument("--model", default="deepseek-coder:6.7b", help="Ollama model name")
 		ai_subparsers.add_parser("providers", help="Show configured AI providers (any API key)")
+
+		agent_parser = commands.add_parser("agent", help="Autonomous agent: LLM drives real modules to the flag")
+		agent_parser.add_argument("target", help="Path, ciphertext, URL, or host to solve")
+		agent_parser.add_argument("--goal", default="capture the flag", help="Objective for the agent")
+		agent_parser.add_argument("--budget", type=int, default=10, help="Max tool calls")
 
 		commands.add_parser("shell", help="Start interactive SYCTF shell")
 		return parser

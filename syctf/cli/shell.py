@@ -233,6 +233,7 @@ def run_shell(app) -> int:
                     "ai decode         Enter AI decoding mode\n"
                     "ai recon-plan     Enter AI recon planning mode\n"
                     "solve <target>    Autonomous solve (file/dir/text/url/host)\n"
+                    "agent <target>    Autonomous agent: LLM drives real modules to the flag\n"
                     "providers         Show configured AI providers (any API key)\n"
                     "auto-decode ...   Forward to top-level auto decode command\n"
                     "help              Show this panel\n"
@@ -344,6 +345,29 @@ def run_shell(app) -> int:
             from syctf.cli.commands.providers import render_providers
 
             render_providers(console=app.console)
+            continue
+
+        if lowered.startswith("agent"):
+            try:
+                parts = shlex.split(cmd)
+            except ValueError as exc:
+                app.console.print(f"[bold red]Parse error:[/bold red] {exc}")
+                continue
+            positional = [p for p in parts[1:] if not p.startswith("--")]
+            if not positional:
+                app.console.print("[yellow]Usage:[/yellow] agent <target> [--goal G] [--budget N]")
+                continue
+
+            def _aopt(name: str, default: str) -> str:
+                return parts[parts.index(name) + 1] if name in parts and parts.index(name) + 1 < len(parts) else default
+
+            from syctf.cli.commands.agent import run_agent
+
+            try:
+                run_agent(app, positional[0], goal=_aopt("--goal", "capture the flag"), budget=int(_aopt("--budget", "10")))
+            except Exception as exc:  # noqa: BLE001
+                app.console.print(f"[bold red]Agent failed:[/bold red] {exc}")
+                app.logger.exception("shell agent failure: %s", exc)
             continue
 
         if lowered.startswith("solve"):

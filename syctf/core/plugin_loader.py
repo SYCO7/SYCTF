@@ -114,9 +114,15 @@ class PluginLoader:
             return None
 
         module = importlib.util.module_from_spec(spec)
+        # Register before exec so plugins that define @dataclass at import time
+        # resolve their own __module__ (Python 3.13 dataclasses require this).
+        import sys
+
+        sys.modules[module_name] = module
         try:
             spec.loader.exec_module(module)
         except Exception as exc:  # noqa: BLE001
+            sys.modules.pop(module_name, None)
             self.logger.exception("Failed to import plugin %s: %s", path, exc)
             return None
 

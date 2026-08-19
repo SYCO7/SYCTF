@@ -10,7 +10,6 @@ DEFAULT_FLAG_REGEXES: tuple[str, ...] = (
     r"[A-Za-z0-9_]{2,20}\{[^{}\n]{1,200}\}",   # generic  NAME{...}
     r"flag\{[^{}\n]{1,200}\}",
     r"CTF\{[^{}\n]{1,200}\}",
-    r"[A-Za-z0-9_]{2,20}\[[^\[\]\n]{1,200}\]",  # NAME[...] variant
 )
 
 # Substrings that betray a fabricated / templated "flag" from an LLM.
