@@ -13,6 +13,8 @@ SYCTF pairs deterministic, evidence-grounded automation with an AI layer that
 runs on **any provider** (local Ollama or any hosted key) and refuses to guess:
 a claimed flag is accepted only when it is verified against real evidence.
 
+![SYCTF demo](assets/demo.gif)
+
 ---
 
 ## 1) 🚀 What Is SYCTF
@@ -253,15 +255,17 @@ takes the opposite bets:
 
 ## 10) 🗺️ Roadmap
 
-**Shipped in 0.2 “Hydra”:** multi-provider AI, autonomous `solve`, flag engine,
-anti-hallucination + learning loop, CI.
+**Shipped in 0.2 “Hydra”:** multi-provider AI (17 backends), autonomous `solve`
++ autonomous `agent`, flag engine, anti-hallucination + learning loop, CI,
+Docker image, demo GIF, and full category coverage —
+**crypto** (RSA/XOR), **pwn** (ROP/fmtstr), **web** (SQLi/XSS/LFI/JWT),
+**forensics** (LSB stego / zip-crack / pcap), **mobile** (APK/AXML/DEX),
+**cloud** (S3/IMDS-SSRF/keys), and **OSINT** (subdomains/DNS/RDAP/wayback).
 
 **Next:**
-- deeper category analyzers: crypto (RSA/XOR), pwn (ROP/fmt-string), forensics
-- new domains: **mobile** (APK/jadx/MobSF), **cloud** (IAM/SSRF/metadata)
-- **OSINT** module wired to recon/subdomain/breach tooling
-- exploit scripting with deeper binary context
-- shared solve memory across challenges
+- shared solve memory across challenges (sqlite)
+- Phase-0 hygiene: drop the duplicate `modules/` tree, `.gitattributes` for EOL
+- more analyzers: heap pwn, angr/symbolic assist, richer crypto (LLL/lattice)
 
 ---
 

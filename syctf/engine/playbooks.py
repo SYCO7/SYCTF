@@ -30,7 +30,7 @@ RECOMMENDED_MODULES: dict[str, list[str]] = {
     "rev":       ["rev/triage", "rev/strings-analyzer", "pwn/elf-analyze"],
     "pwn":       ["pwn/rop-finder", "pwn/fmtstr", "pwn/elf-analyze", "pwn/cyclic", "pwn/offset", "ai/exploit"],
     "web":       ["web/sqli-probe", "web/xss-probe", "web/lfi-probe", "web/jwt-tool", "web/quick-recon", "web/dir-bruteforce", "osint/subdomains"],
-    "forensics": ["rev/strings-analyzer", "misc/smart-decode"],
+    "forensics": ["forensics/stegano", "forensics/zip-crack", "forensics/pcap-extract", "rev/strings-analyzer", "misc/smart-decode"],
     "mobile":    ["mobile/apk-info", "mobile/apk-secrets", "mobile/dex-strings"],
     "cloud":     ["cloud/cloud-keys", "cloud/s3-enum", "cloud/imds-ssrf"],
     "osint":     ["osint/subdomains", "osint/dns-recon", "osint/whois", "osint/wayback", "osint/username-enum"],

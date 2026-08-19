@@ -35,6 +35,7 @@ COMMAND_CATEGORY_MAP: dict[str, str] = {
 	"osint": "osint",
 	"mobile": "mobile",
 	"cloud": "cloud",
+	"forensics": "forensics",
 }
 
 
