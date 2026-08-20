@@ -9,22 +9,23 @@ from __future__ import annotations
 
 import argparse
 
+from rich.align import Align
 from rich.console import Console, Group
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
-from syctf.cli.banner import GITHUB_URL, LINKEDIN_URL, OWNER
+from syctf.cli.banner import ASCII_LOGO, GITHUB_URL, LINKEDIN_URL, OWNER, _build_logo
 from syctf.version import __release__, __version__
 
-# --- short main menu (fits with the logo) ------------------------------------
+# --- short main menu (no emoji: many terminals render them as broken glyphs) --
 _MAIN = [
-    ("🎯", "Autonomous Solve", "solve"),
-    ("🤖", "Autonomous Agent", "agent"),
-    ("🏟", "Arena — sweep a whole folder", "arena"),
-    ("🧩", "Categories  ▸", "sub:categories"),
-    ("🧠", "AI & Providers  ▸", "sub:ai"),
-    ("🧰", "Tools & Settings  ▸", "sub:tools"),
+    ("", "Autonomous Solve", "solve"),
+    ("", "Autonomous Agent", "agent"),
+    ("", "Arena — sweep a whole folder", "arena"),
+    ("", "Categories  >", "sub:categories"),
+    ("", "AI & Providers  >", "sub:ai"),
+    ("", "Tools & Settings  >", "sub:tools"),
 ]
 
 # --- submenus ----------------------------------------------------------------
@@ -58,13 +59,14 @@ _TOOLS = [
 
 def _header(app) -> None:
     fmt = app.context.cache.get("flag_format") or "auto-detect"
-    title = Text()
-    title.append(" SYCTF ", style="bold bright_green")
-    title.append(f"v{__version__} ", style="bold cyan")
-    title.append(f"“{__release__}”", style="bold bright_cyan")
-    title.append("   ·  flag format: ", style="dim")
-    title.append(fmt, style="bold yellow")
-    app.console.print(Panel(title, border_style="bright_cyan", padding=(0, 1)))
+    logo = _build_logo(ASCII_LOGO[:6])          # the SYCTF lettering (no tagline)
+    sub = Text()
+    sub.append(f"v{__version__} “{__release__}”", style="bold bright_cyan")
+    sub.append("    ·    flag format: ", style="dim")
+    sub.append(fmt, style="bold yellow")
+    app.console.print(
+        Panel(Group(Align.center(logo), Align.center(sub)), border_style="bright_cyan", padding=(0, 1))
+    )
 
 
 def _render(console: Console, title: str, rows: list, *, back: bool = False) -> None:
