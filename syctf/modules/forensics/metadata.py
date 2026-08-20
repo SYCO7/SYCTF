@@ -10,6 +10,7 @@ import struct
 import zlib
 from pathlib import Path
 
+from rich.panel import Panel
 from rich.table import Table
 
 from syctf.core.types import ExecutionContext
@@ -103,6 +104,30 @@ class MetadataPlugin:
             context.console.print(table)
         else:
             context.console.print("[dim]No PNG-text / JPEG-EXIF metadata; scanning strings.[/dim]")
+
+        # Hidden data is often hex-encoded in a metadata field (e.g. a whole
+        # PEM private key in a JPEG comment). Decode long hex blobs, show the
+        # full result, and save any recovered key/PEM to a file.
+        decoded_extra: list[tuple[str, str]] = []
+        for key, value in list(fields):          # snapshot: we append below
+            blob = value.strip()
+            if re.fullmatch(r"[0-9a-fA-F]{32,}", blob) and len(blob) % 2 == 0:
+                try:
+                    decoded = bytes.fromhex(blob).decode("latin-1", "ignore")
+                except ValueError:
+                    continue
+                context.console.print(Panel(decoded.strip()[:4000], title=f"decoded {key} (hex)", border_style="green"))
+                if "PRIVATE KEY" in decoded or "BEGIN" in decoded:
+                    out = path.with_name(path.stem + ".recovered.pem")
+                    try:
+                        out.write_text(decoded)
+                        context.console.print(f"[bold green]Recovered key saved →[/bold green] {out}")
+                        context.console.print(f"[dim]Decrypt with:[/dim] openssl pkeyutl -decrypt -inkey {out} -in <ciphertext> -out flag.txt")
+                        context.cache["recovered_key"] = str(out)
+                    except OSError:
+                        pass
+                decoded_extra.append((f"{key} (decoded)", decoded))
+        fields.extend(decoded_extra)
 
         corpus = "\n".join(v for _, v in fields)
         corpus += "\n" + "\n".join(r.decode("ascii", "ignore") for r in re.findall(rb"[\x20-\x7e]{4,}", data))
