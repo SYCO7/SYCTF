@@ -102,26 +102,32 @@ flowchart LR
 
 ## 🧩 What's inside
 
-| | Categories |
+| | Tools |
 |---|---|
-| **Crypto** | RSA (factordb/Fermat/Wiener/low-exp), XOR, decode, hashes |
-| **Pwn** | ROP gadgets, format-string writes, ELF triage, offsets |
+| **Crypto** | RSA attacks (factordb/Fermat/Wiener/low-exp) + PEM decrypt, XOR, decode, hashes |
+| **Pwn** | ROP gadget finder, heap helper (libc offsets / bin math), format-string writes, ELF triage, offsets |
 | **Web** | SQLi, XSS, LFI, JWT (alg=none / crack) |
-| **Forensics** | LSB stego, zip-crack, pcap extraction |
-| **Mobile** | APK manifest (AXML), secrets, DEX strings |
+| **Forensics** | LSB & WAV-audio stego, git forensics (dangling commits), EXIF/metadata (+ key recovery), pcap, zip-crack |
+| **Mobile** | APK manifest (AXML), hardcoded secrets, DEX strings |
 | **Cloud** | S3 enum, IMDS-SSRF, cloud-key scan |
 | **OSINT** | subdomains, DNS, RDAP whois, wayback, username-enum |
-| **Core** | recon · fuzz · rev · misc · 17-provider AI · plugins |
+| **Core** | recon · fuzz · rev · misc · Arena · solve-memory · 17-provider AI · plugins |
 
-Self-contained: pure-Python (even the PNG decoder & binary-AXML parser) — no heavy external tools required.
+46 tools across 13 categories, all reachable from the menu. Self-contained:
+pure-Python (even the PNG decoder, binary-AXML parser, and RSA/ROP tooling) — no
+heavy external tools required. CodeQL + Bandit + dependency scanning on every push.
 
 ---
 
 ## 🔌 Bring any AI
 
+Set a key **from the menu** — *AI & Providers → Set AI Key* → pick a provider,
+paste the key (hidden), it saves & activates it (stored in `~/.config/syctf/`,
+never in the repo). No shell exports needed. Or do it by hand:
+
 ```bash
-export ANTHROPIC_API_KEY=sk-...
-SYCTF_AI_PROVIDER=anthropic syctf agent ./chal
+export NVIDIA_API_KEY=nvapi-...
+SYCTF_AI_PROVIDER=nvidia syctf agent ./chal      # NVIDIA Nemotron (or claude/openai/gemini/groq/…)
 ```
 
 `syctf ai providers` lists all 17 backends and what's configured. Best local models for an 8–12 GB Kali box → [`docs/ai/models.md`](docs/ai/models.md).
