@@ -27,12 +27,19 @@ def detect_resources():
 
 
 def recommend_model(ram):
-    if ram < 8:
-        return "phi"
-    elif ram <= 16:
-        return "deepseek-coder:6.7b"
+    """Pick the best-balance model for the box's RAM.
+
+    Qwen2.5-Instruct: strong instruction-following + tool use, well-calibrated
+    (low hallucination), reliable ollama tags, fast on CPU. The sweet spot for
+    SYCTF's agent in a Kali VM — see docs/ai/models.md.
+    """
+
+    if ram < 6:
+        return "qwen2.5:3b-instruct-q4_K_M"      # ~2.2 GB, very smooth on CPU
+    elif ram <= 12:
+        return "qwen2.5:7b-instruct-q4_K_M"      # ~4.7 GB, best balance for 8-12 GB
     else:
-        return "codellama:13b"
+        return "qwen2.5:14b-instruct-q4_K_M"     # ~9 GB, more headroom
 
 
 def check_ollama_installed():

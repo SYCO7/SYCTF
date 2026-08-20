@@ -8,6 +8,45 @@ Under CPU inference, RAM (not VRAM) is the limit and a 4-bit 7–8B model is the
 sweet spot: ~5 GB resident, usable tokens/sec, and strong enough to reason about
 CTF evidence when grounded by SYCTF's collectors.
 
+## ⭐ The pick for a Kali 8 GB VM (CPU): `qwen2.5:7b-instruct-q4_K_M`
+
+```bash
+ollama pull qwen2.5:7b-instruct-q4_K_M      # ~4.7 GB
+# if the VM is tight / stutters, drop to the 3B — still smooth, still solid:
+ollama pull qwen2.5:3b-instruct-q4_K_M      # ~2.2 GB
+```
+Why this over the alternatives, for *this* job (SYCTF's agent = pick a tool →
+read evidence → answer, with anti-hallucination):
+
+- **Best instruction-following + tool use at 7B** — the agent emits JSON tool
+  calls; Qwen2.5 follows that reliably. Fast on CPU, fits 8 GB with headroom.
+- **Well-calibrated (low hallucination)** — it will say "unknown" instead of
+  inventing, which is exactly what you want; SYCTF's grounding does the rest.
+- **Reliable, official ollama tags** — no broken HuggingFace pulls.
+
+### Why **not** WhiteRabbitNeo / DeepHat as the default here
+It's a great *offensive-writing* model, but a poor fit for an 8 GB Kali VM CTF
+solver:
+
+- **Too big** — the 13B eats ~8–10 GB (Q4), i.e. your whole VM → swapping and
+  stalls; even the 7B leaves little room for Kali + tools.
+- **Tuned for generation, not tool-following/reasoning** — it writes exploits
+  and explanations well, but is weaker at the structured JSON tool-calls and
+  step reasoning SYCTF's agent needs.
+- **More prone to hallucinate** — uncensored "always answer" tuning fabricates
+  more; you asked for *no* hallucination.
+- **Flaky tags** — community GGUF repos move/deprecate; pulls fail.
+
+Use WhiteRabbitNeo/DeepHat only when you specifically need uncensored exploit
+*generation* and have the RAM — not as the everyday solver brain.
+
+### VM tuning for smoothness
+- Give the VM the **full 8 GB** (more if the host allows) and keep Kali lean.
+- Use **Q4_K_M** quants; add a few GB of swap as a safety net.
+- One request at a time: `export OLLAMA_NUM_PARALLEL=1` and a modest context
+  `export OLLAMA_CONTEXT_LENGTH=4096`.
+- `syctf ai-setup` reads your RAM and recommends the right size automatically.
+
 ## Recommended local stack (Ollama, Linux)
 
 | Tier | Model | Pull | Size (Q4) | Why |

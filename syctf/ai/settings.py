@@ -17,7 +17,6 @@ from typing import Any
 from syctf.core.paths import get_config_dir
 
 # Local defaults chosen for CPU / small-VRAM Linux boxes (see docs/ai/models).
-DEFAULT_REASON_MODEL = "hf.co/TheBloke/WhiteRabbitNeo-13B-GGUF:Q4_K_M"
 DEFAULT_LOCAL_REASON = "qwen2.5:7b-instruct-q4_K_M"
 DEFAULT_ROUTE_MODEL = "qwen2.5:3b-instruct-q4_K_M"
 DEFAULT_CODE_MODEL = "qwen2.5-coder:7b-instruct-q4_K_M"
