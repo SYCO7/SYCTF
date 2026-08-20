@@ -159,7 +159,7 @@ class Verifier:
         if expected_sha256:
             return hashlib.sha256(value.encode()).hexdigest().lower() == expected_sha256.strip().lower()
         if expected_md5:
-            return hashlib.md5(value.encode()).hexdigest().lower() == expected_md5.strip().lower()
+            return hashlib.md5(value.encode(), usedforsecurity=False).hexdigest().lower() == expected_md5.strip().lower()
         if callable(checker):
             try:
                 return bool(checker(value))

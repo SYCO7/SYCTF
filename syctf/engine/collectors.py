@@ -79,8 +79,8 @@ def file_hashes(path: Path) -> tuple[str, str]:
         data = path.read_bytes()
     except OSError as exc:
         return (f"unreadable: {exc}", "")
-    md5 = hashlib.md5(data).hexdigest()
-    sha1 = hashlib.sha1(data).hexdigest()
+    md5 = hashlib.md5(data, usedforsecurity=False).hexdigest()
+    sha1 = hashlib.sha1(data, usedforsecurity=False).hexdigest()
     sha256 = hashlib.sha256(data).hexdigest()
     return ("hashes computed", f"md5={md5}\nsha1={sha1}\nsha256={sha256}")
 

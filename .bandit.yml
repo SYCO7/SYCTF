@@ -1,0 +1,6 @@
+# Bandit configuration for SYCTF.
+# The package deliberately uses subprocess (fixed arg lists, no shell) and
+# MD5/SHA1 for CTF file-fingerprinting / flag-hash matching (usedforsecurity=False).
+exclude_dirs:
+  - tests
+  - scripts
