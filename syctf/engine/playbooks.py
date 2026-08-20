@@ -20,8 +20,8 @@ CATEGORY_PLAYBOOKS: dict[str, list[str]] = {
     "mobile":    ["identify", "strings", "entropy"],
     "cloud":     ["classify-text", "strings"],
     "osint":     ["classify-text"],
-    "misc":      ["identify", "classify-text", "strings"],
-    "unknown":   ["identify", "entropy", "strings", "classify-text"],
+    "misc":      ["identify", "classify-text", "auto-decode", "strings"],
+    "unknown":   ["identify", "classify-text", "auto-decode", "strings", "entropy"],
 }
 
 # Existing SYCTF modules to reach for next, per category (menu keys).

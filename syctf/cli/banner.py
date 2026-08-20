@@ -209,13 +209,22 @@ def _footer_line(width: int, shimmer: bool = False) -> Text:
     return Text(line[:usable], style=style)
 
 
+def _author_line() -> Text:
+    """Short, corner author credit (no big box, no portfolio)."""
+
+    text = Text()
+    text.append(f"{OWNER}", style="bold white")
+    text.append("  ·  ", style="dim")
+    text.append(GITHUB_URL.replace("https://", ""), style="green")
+    text.append("  ·  ", style="dim")
+    text.append("linkedin.com/in/tanmoy-mondal-11070334b", style="cyan")
+    return text
+
+
 def _render_cinematic(console: Console, diag: StartupDiagnostics) -> None:
     """Render startup in cinematic multi-panel layout."""
 
-    top = Columns([_logo_panel(), _diagnostics_panel(diag)], equal=True, expand=True)
-    bottom = Columns([_branding_panel()], expand=True)
-    console.print(top)
-    console.print(bottom)
+    console.print(Columns([_logo_panel(), _diagnostics_panel(diag)], equal=True, expand=True))
 
 
 def _render_compact(console: Console, diag: StartupDiagnostics) -> None:
@@ -223,7 +232,6 @@ def _render_compact(console: Console, diag: StartupDiagnostics) -> None:
 
     console.print(_logo_panel())
     console.print(_diagnostics_panel(diag))
-    console.print(_branding_panel())
 
 
 def render_startup(console: Console, *, animate: bool = True) -> None:
@@ -256,10 +264,7 @@ def render_startup(console: Console, *, animate: bool = True) -> None:
     else:
         _render_cinematic(console, diag)
 
-    footer = _footer_line(width, shimmer=animate)
-    console.print(Align.center(footer))
-    if animate:
-        time.sleep(0.06)
+    console.print(Align.right(_author_line()))
     console.print()
 
 

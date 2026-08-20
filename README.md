@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/badge/License-MIT-2ea44f)](LICENSE)
 [![CI](https://github.com/SYCO7/SYCTF/actions/workflows/ci.yml/badge.svg)](https://github.com/SYCO7/SYCTF/actions/workflows/ci.yml)
 [![AI](https://img.shields.io/badge/AI-17%20providers%20·%20bring%20any%20key-111827)](docs/ai/models.md)
-[![Release](https://img.shields.io/badge/v0.2-%E2%80%9CHydra%E2%80%9D-bc8cff)](CHANGELOG.md)
+[![Release](https://img.shields.io/badge/v2.0.0-%E2%80%9CHydra%E2%80%9D-bc8cff)](CHANGELOG.md)
 
 ![SYCTF demo](assets/demo.gif)
 
@@ -46,6 +46,7 @@ Pick a category → pick a module → it prompts for each argument → runs. Eve
 ```bash
 syctf solve "ZmxhZ3toaX0="                 # autonomous solve (auto-detects type)
 syctf agent ./chal --goal "get the flag"   # AI drives real modules to the flag
+syctf arena ./ctf_folder --flag-format picoCTF{}   # batch-solve a whole event → scoreboard
 syctf crypto-helper rsa-attacks --n 0x.. --e 65537 --c 0x..
 syctf forensics stegano --file cat.png
 ```

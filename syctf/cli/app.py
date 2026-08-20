@@ -131,6 +131,22 @@ class SyctfApp:
 				logger=self.logger,
 			)
 
+		if args.command == "arena":
+			from syctf.cli.commands.arena import run_arena
+
+			return run_with_guard(
+				lambda: run_arena(
+					args.path,
+					flag_format=getattr(args, "flag_format", None),
+					use_ai=bool(getattr(args, "use_ai", False)),
+					budget=int(getattr(args, "budget", 8)),
+					console=self.console,
+				),
+				console=self.console,
+				logger_name="arena",
+				logger=self.logger,
+			)
+
 		if args.command == "agent":
 			from syctf.cli.commands.agent import run_agent
 
@@ -338,6 +354,12 @@ class SyctfApp:
 		agent_parser.add_argument("--goal", default="capture the flag", help="Objective for the agent")
 		agent_parser.add_argument("--budget", type=int, default=10, help="Max tool calls")
 		agent_parser.add_argument("--flag-format", dest="flag_format", help="Flag format, e.g. picoCTF{}")
+
+		arena_parser = commands.add_parser("arena", help="Batch-solve a folder of challenges into a scoreboard")
+		arena_parser.add_argument("path", help="Directory containing challenges")
+		arena_parser.add_argument("--flag-format", dest="flag_format", help="Flag format, e.g. picoCTF{}")
+		arena_parser.add_argument("--ai", dest="use_ai", action="store_true", help="Use AI reasoning per challenge")
+		arena_parser.add_argument("--budget", type=int, default=8, help="Max steps per challenge")
 
 		commands.add_parser("menu", help="Launch the interactive numbered menu (default when no command)")
 		commands.add_parser("shell", help="Start interactive SYCTF shell")
