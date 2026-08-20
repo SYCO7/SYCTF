@@ -301,6 +301,8 @@ def _submenu(app, title: str, items: list[tuple[str, str]], *, is_category: bool
     console = app.console
     rows = [("", label) for _key, label in items]
     while True:
+        console.clear()
+        _header(app)
         _render(console, title, rows, back=True)
         choice = console.input("[bold bright_green]▸ select # (0 = back):[/bold bright_green] ").strip()
         if choice in ("0", "", "b", "back"):
@@ -326,6 +328,7 @@ def run_menu(app) -> int:
     console: Console = app.console
     main_rows = [(icon, label) for icon, label, _kind in _MAIN]
     while True:
+        console.clear()
         _header(app)
         _render(console, "MAIN MENU", main_rows)
         choice = console.input("[bold bright_green]syctf ▸ select #:[/bold bright_green] ").strip().lower()
