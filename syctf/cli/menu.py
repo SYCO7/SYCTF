@@ -52,6 +52,7 @@ _AI = [
 _TOOLS = [
     ("set-format", "Set Flag Format  — e.g. picoCTF  (used by every module)"),
     ("auto-decode", "Auto-Decode      — multi-layer heuristic decoder"),
+    ("memory", "Solve Memory     — techniques learned across challenges"),
     ("plugins", "Plugins          — install & manage"),
     ("about", "About"),
 ]
@@ -282,6 +283,10 @@ def _dispatch(app, kind: str) -> None:
         _run_ai_writeup(app)
     elif kind == "set-format":
         _ask_flag_format(app)
+    elif kind == "memory":
+        from syctf.cli.commands.memory import render_memory
+
+        render_memory(console=console)
     elif kind == "providers":
         from syctf.cli.commands.providers import render_providers
 

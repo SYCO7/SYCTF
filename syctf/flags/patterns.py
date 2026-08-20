@@ -7,7 +7,9 @@ import re
 # Common CTF flag wrappers. ``{...}`` body is intentionally permissive but
 # bounded to avoid runaway matches across whole files.
 DEFAULT_FLAG_REGEXES: tuple[str, ...] = (
-    r"[A-Za-z0-9_]{2,20}\{[^{}\n]{1,200}\}",   # generic  NAME{...}
+    # Generic NAME{...}: body >= 4 chars, to avoid matching random binary noise
+    # like "qJ{l}" decoded out of a JWT/blob. Explicit prefixes stay permissive.
+    r"[A-Za-z0-9_]{2,20}\{[^{}\n]{4,200}\}",
     r"flag\{[^{}\n]{1,200}\}",
     r"CTF\{[^{}\n]{1,200}\}",
 )

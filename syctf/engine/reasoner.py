@@ -50,6 +50,16 @@ class Reasoner:
         ctx.flag = value
         ctx.note(f"FLAG via {source}: {value}")
         ctx.log(f"[flag] {value} (source={source})")
+        # Persist to cross-challenge memory (techniques only; learns over time).
+        try:
+            from pathlib import Path as _Path
+
+            from syctf.memory import SolveMemory
+
+            name = _Path(ctx.target).name if ctx.files else str(ctx.target)[:40]
+            SolveMemory().record(name=name or "challenge", category=ctx.category, technique=source, flag=value)
+        except Exception:  # noqa: BLE001 - memory is best-effort
+            pass
 
     def solve(self, ctx: SolveContext, *, use_ai: bool = True, ensemble: int = 1) -> SolveResult:
         # 1) Deterministic, grounded pass -- always runs, no tokens spent.
@@ -101,8 +111,15 @@ class Reasoner:
         negatives = ""
         if self.verifier is not None:
             negatives = self.verifier.memory.as_few_shot()
+        memory_hint = ""
+        try:
+            from syctf.memory import SolveMemory
+
+            memory_hint = SolveMemory().hint(ctx.category)
+        except Exception:  # noqa: BLE001
+            memory_hint = ""
         prompt = (
-            f"{negatives}\n\nChallenge state:\n{ctx.state_digest()}\n\n"
+            f"{negatives}\n{memory_hint}\n\nChallenge state:\n{ctx.state_digest()}\n\n"
             f"Collected evidence (verbatim, this is the ONLY ground truth):\n{evidence[:8000]}\n\n"
             "Give: (1) most likely category & why, (2) the single best next action, "
             "(3) the flag ONLY if it appears in the evidence above."

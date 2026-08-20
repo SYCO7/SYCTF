@@ -60,7 +60,18 @@ syctf crypto-helper rsa-attacks --n 0x.. --e 65537 --c 0x..
 syctf forensics stegano --file cat.png
 ```
 
+```bash
+syctf memory                               # techniques SYCTF learned across challenges
+python scripts/benchmark.py                # solve-rate over the bundled samples
+```
+
 Full walkthrough with ready-made sample challenges → [`docs/DEMO.md`](docs/DEMO.md).
+
+**Learns as you go:** every solved challenge is remembered (category → winning
+technique, never the flag) in a local sqlite store and fed back as a hint on
+similar challenges. **Benchmark:** `python scripts/benchmark.py` scores the
+bundled samples (5/9 with the *deterministic* engine alone — no AI, no category
+modules; higher with `--ai` or the per-category tools).
 
 ---
 

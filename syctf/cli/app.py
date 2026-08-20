@@ -131,6 +131,11 @@ class SyctfApp:
 				logger=self.logger,
 			)
 
+		if args.command == "memory":
+			from syctf.cli.commands.memory import render_memory
+
+			return render_memory(console=self.console)
+
 		if args.command == "arena":
 			from syctf.cli.commands.arena import run_arena
 
@@ -360,6 +365,8 @@ class SyctfApp:
 		arena_parser.add_argument("--flag-format", dest="flag_format", help="Flag format, e.g. picoCTF{}")
 		arena_parser.add_argument("--ai", dest="use_ai", action="store_true", help="Use AI reasoning per challenge")
 		arena_parser.add_argument("--budget", type=int, default=8, help="Max steps per challenge")
+
+		commands.add_parser("memory", help="Show what the cross-challenge solve memory has learned")
 
 		commands.add_parser("menu", help="Launch the interactive numbered menu (default when no command)")
 		commands.add_parser("shell", help="Start interactive SYCTF shell")
