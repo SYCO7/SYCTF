@@ -1,0 +1,19 @@
+# Normalize line endings: LF in the repo, auto on checkout.
+* text=auto eol=lf
+
+# Treat known binaries as binary (never touch line endings).
+*.png  -text
+*.jpg  -text
+*.jpeg -text
+*.gif  -text
+*.ico  -text
+*.zip  -text
+*.apk  -text
+*.jar  -text
+*.pcap -text
+*.pcapng -text
+*.wav  -text
+*.mp3  -text
+*.so   -text
+*.pyc  -text
+*.pdf  -text
