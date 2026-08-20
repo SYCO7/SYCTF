@@ -37,3 +37,8 @@ dist/
 
 # local secrets
 .env
+
+# stray/other-OS virtualenvs
+ctfvenv/
+env*/
+.tmp/

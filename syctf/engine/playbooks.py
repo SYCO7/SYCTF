@@ -28,9 +28,9 @@ CATEGORY_PLAYBOOKS: dict[str, list[str]] = {
 RECOMMENDED_MODULES: dict[str, list[str]] = {
     "crypto":    ["crypto/rsa-attacks", "crypto/xor-tools", "crypto/auto-decode", "misc/smart-decode", "crypto/hash-identifier"],
     "rev":       ["rev/triage", "rev/strings-analyzer", "pwn/elf-analyze"],
-    "pwn":       ["pwn/rop-finder", "pwn/fmtstr", "pwn/elf-analyze", "pwn/cyclic", "pwn/offset", "ai/exploit"],
+    "pwn":       ["pwn/rop-finder", "pwn/heap-helper", "pwn/fmtstr", "pwn/elf-analyze", "pwn/cyclic", "pwn/offset", "ai/exploit"],
     "web":       ["web/sqli-probe", "web/xss-probe", "web/lfi-probe", "web/jwt-tool", "web/quick-recon", "web/dir-bruteforce", "osint/subdomains"],
-    "forensics": ["forensics/stegano", "forensics/zip-crack", "forensics/pcap-extract", "rev/strings-analyzer", "misc/smart-decode"],
+    "forensics": ["forensics/stegano", "forensics/audio-stego", "forensics/metadata", "forensics/git-forensics", "forensics/zip-crack", "forensics/pcap-extract", "rev/strings-analyzer"],
     "mobile":    ["mobile/apk-info", "mobile/apk-secrets", "mobile/dex-strings"],
     "cloud":     ["cloud/cloud-keys", "cloud/s3-enum", "cloud/imds-ssrf"],
     "osint":     ["osint/subdomains", "osint/dns-recon", "osint/whois", "osint/wayback", "osint/username-enum"],

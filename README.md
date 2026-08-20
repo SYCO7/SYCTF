@@ -14,14 +14,17 @@
 
 ---
 
-## ⚡ Install
+## ⚡ Install (Linux / Kali)
 
 ```bash
 git clone https://github.com/SYCO7/SYCTF.git && cd SYCTF
 python3 -m venv ctfvenv && source ctfvenv/bin/activate
 pip install -r requirements.txt
-python -m syctf            # or: pip install . && syctf
+pip install .                 # installs the `syctf` command on your PATH
+syctf                         # launch the menu   (no install? use: python -m syctf)
 ```
+
+<sub><b>Troubleshooting</b> — Kali <code>externally-managed-environment</code>: you're not inside a venv; run the <code>python3 -m venv</code> + <code>source</code> lines first. A leftover <code>ctfvenv</code> from another OS (has <code>Scripts/</code> or a <code>C:\</code> path) is broken on Linux → <code>rm -rf ctfvenv</code> and recreate. Typing <code>syctf</code> does nothing → you skipped <code>pip install .</code> (use <code>python -m syctf</code> meanwhile).</sub>
 
 Docker: `docker build -t syctf . && docker run --rm -it syctf`
 
@@ -46,6 +49,8 @@ syctf agent ./chal --goal "get the flag"   # AI drives real modules to the flag
 syctf crypto-helper rsa-attacks --n 0x.. --e 65537 --c 0x..
 syctf forensics stegano --file cat.png
 ```
+
+Full walkthrough with ready-made sample challenges → [`docs/DEMO.md`](docs/DEMO.md).
 
 ---
 
