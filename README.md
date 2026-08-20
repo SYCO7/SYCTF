@@ -24,6 +24,15 @@ pip install .                 # installs the `syctf` command on your PATH
 syctf                         # launch the menu   (no install? use: python -m syctf)
 ```
 
+<b>Windows</b> (Windows Terminal / PowerShell) works too — same steps, different venv path:
+
+```powershell
+git clone https://github.com/SYCO7/SYCTF.git; cd SYCTF
+python -m venv ctfvenv; .\ctfvenv\Scripts\Activate.ps1
+pip install -r requirements.txt; pip install .
+syctf
+```
+
 <sub><b>Troubleshooting</b> — Kali <code>externally-managed-environment</code>: you're not inside a venv; run the <code>python3 -m venv</code> + <code>source</code> lines first. A leftover <code>ctfvenv</code> from another OS (has <code>Scripts/</code> or a <code>C:\</code> path) is broken on Linux → <code>rm -rf ctfvenv</code> and recreate. Typing <code>syctf</code> does nothing → you skipped <code>pip install .</code> (use <code>python -m syctf</code> meanwhile).</sub>
 
 Docker: `docker build -t syctf . && docker run --rm -it syctf`
@@ -104,6 +113,8 @@ SYCTF_AI_PROVIDER=anthropic syctf agent ./chal
 ```
 
 `syctf ai providers` lists all 17 backends and what's configured. Best local models for an 8–12 GB Kali box → [`docs/ai/models.md`](docs/ai/models.md).
+
+**Hardware-aware:** `syctf ai-setup` detects your OS, RAM, CPU, and **NVIDIA GPU/VRAM** (Windows & Linux) and recommends the best local model for *your* box — a bigger reasoning model when you have a real GPU (e.g. 24 GB VRAM → a 32B), a lean one on a small CPU-only VM (8 GB → a 7B), and points you at a hosted key when local can't keep up.
 
 ---
 

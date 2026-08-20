@@ -90,15 +90,20 @@ def pull_model(model):
 def run_ai_setup():
     print(Panel("SYCTF AI Setup", style="bold green"))
 
-    ram, cpu, gpu = detect_resources()
+    from syctf.core.hardware import detect_hardware, recommend_hosted
+    from syctf.core.hardware import recommend_model as hw_recommend_model
 
-    print(f"RAM: {ram} GB")
-    print(f"CPU cores: {cpu}")
-    print(f"GPU detected: {gpu}")
+    hw = detect_hardware()
+    gpu_line = (
+        f"{hw.gpus[0].name} ({hw.vram_gb:.0f} GB VRAM)" if hw.has_gpu else "none (CPU-only)"
+    )
+    print(f"OS: {hw.os_name}{'  [VM]' if hw.is_vm else ''}")
+    print(f"RAM: {hw.ram_gb} GB   CPU cores: {hw.cpu_cores}")
+    print(f"GPU: {gpu_line}")
 
-    model = recommend_model(ram)
-
-    print(f"\nRecommended model: [yellow]{model}[/yellow]\n")
+    model, why = hw_recommend_model(hw)
+    print(f"\nRecommended model: [yellow]{model}[/yellow]  [dim]({why})[/dim]")
+    print(f"[cyan]{recommend_hosted(hw)}[/cyan]\n")
     show_diagnostics(model)
 
     if not check_ollama_installed():
