@@ -195,4 +195,50 @@ No oracle → it returns `False` (it will not *claim* certainty it cannot prove)
 | 10 | Pwn | `pwn-helper rop-finder` | gadgets |
 | 11 | AI providers | `ai providers` | 17 backends |
 
-Run `pytest tests/unit -q` for the automated suite (86 tests).
+Run `pytest tests/unit -q` for the automated suite.
+
+---
+
+## 🎯 Live walkthrough — picoCTF (or any free CTF)
+
+picoCTF (play.picoctf.org) is free and beginner-friendly. Two challenge shapes:
+
+**1) Set the flag format once** — picoCTF flags are `picoCTF{...}`:
+```bash
+syctf                       # menu → Tools & Settings → Set Flag Format → picoCTF
+# or on the CLI, add:  --flag-format picoCTF{}
+```
+
+**2) Downloadable-file challenges** (Forensics / Crypto / Reverse / General):
+```bash
+# download the file(s) from the challenge page, then:
+syctf solve ./thefile --flag-format picoCTF{}          # hands-free deterministic pass
+syctf agent ./thefile --flag-format picoCTF{}          # AI-driven (needs Ollama or a key)
+
+# or target the right tool directly:
+syctf forensics metadata     --file ./picture.jpg      # "information", EXIF challenges
+syctf forensics stegano      --file ./image.png        # LSB stego
+syctf forensics pcap-extract --file ./capture.pcap     # packet-capture challenges
+syctf crypto-helper rsa-attacks --n <n> --e <e> --c <c> # RSA (values from the file)
+syctf auto-decode "<blob>"                             # base64/hex/rot chains
+```
+Worked examples: *Mod26 / rotation* → `syctf solve "picoCTF{...}" --flag-format picoCTF{}`;
+*base64* → same; *information* → `forensics metadata`; *Trivial Flag Transfer* →
+`forensics pcap-extract`.
+
+**3) Remote-service challenges** (Web `http://…:port`, or `nc host port`):
+```bash
+syctf web-helper jwt-tool   --token "<cookie/JWT from the site>"
+syctf web-helper sqli-probe --url "http://HOST:PORT/page?id=FUZZ"
+syctf web-helper lfi-probe  --url "http://HOST:PORT/?file=FUZZ"
+```
+> Remote `nc` pwn interaction isn't automated — SYCTF gives you gadgets
+> (`pwn-helper rop-finder`) + heap math (`pwn-helper heap-helper`); finish in pwntools.
+
+**4) Sweep a downloaded set** — one board for a whole event:
+```bash
+syctf arena ./picoCTF_downloads --flag-format picoCTF{}
+```
+
+Only test on platforms/challenges you're authorized to (picoCTF, HTB, CTFtime
+events — all fine).

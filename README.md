@@ -5,6 +5,7 @@
 [![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-MIT-2ea44f)](LICENSE)
 [![CI](https://github.com/SYCO7/SYCTF/actions/workflows/ci.yml/badge.svg)](https://github.com/SYCO7/SYCTF/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/SYCO7/SYCTF/actions/workflows/codeql.yml/badge.svg)](https://github.com/SYCO7/SYCTF/actions/workflows/codeql.yml)
 [![AI](https://img.shields.io/badge/AI-17%20providers%20·%20bring%20any%20key-111827)](docs/ai/models.md)
 [![Release](https://img.shields.io/badge/v2.0.0-%E2%80%9CHydra%E2%80%9D-bc8cff)](CHANGELOG.md)
 
