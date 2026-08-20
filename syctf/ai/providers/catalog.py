@@ -36,7 +36,9 @@ class ProviderSpec:
 PROVIDERS: dict[str, ProviderSpec] = {
     # --- local, no key required -------------------------------------------
     "ollama": ProviderSpec(
-        "ollama", "ollama", "http://127.0.0.1:11434", "hf.co/TheBloke/WhiteRabbitNeo-13B-GGUF",
+        # Reliable 8GB-friendly default; swap to deepseek-r1:7b (reasoning) or a
+        # DeepHat/WhiteRabbitNeo GGUF (offensive) — see docs/ai/models.md.
+        "ollama", "ollama", "http://127.0.0.1:11434", "qwen2.5:7b-instruct-q4_K_M",
         local=True, docs="https://ollama.com",
     ),
     "lmstudio": ProviderSpec(
@@ -61,19 +63,22 @@ PROVIDERS: dict[str, ProviderSpec] = {
         env=("GEMINI_API_KEY", "GOOGLE_API_KEY"), docs="https://aistudio.google.com/app/apikey",
     ),
     "groq": ProviderSpec(
-        "groq", "openai", "https://api.groq.com/openai/v1", "llama-3.3-70b-versatile",
+        # Fast DeepSeek-R1 reasoning distill — great for CTF chain-of-thought.
+        "groq", "openai", "https://api.groq.com/openai/v1", "deepseek-r1-distill-llama-70b",
         env=("GROQ_API_KEY",), docs="https://console.groq.com/keys",
     ),
     "nvidia": ProviderSpec(
-        "nvidia", "openai", "https://integrate.api.nvidia.com/v1", "meta/llama-3.3-70b-instruct",
+        # NVIDIA's best open reasoning model on NIM (meets/beats DeepSeek-R1).
+        "nvidia", "openai", "https://integrate.api.nvidia.com/v1", "nvidia/llama-3.1-nemotron-ultra-253b-v1",
         env=("NVIDIA_API_KEY", "NVIDIA_NIM_API_KEY"), docs="https://build.nvidia.com",
     ),
     "openrouter": ProviderSpec(
-        "openrouter", "openai", "https://openrouter.ai/api/v1", "meta-llama/llama-3.3-70b-instruct",
+        "openrouter", "openai", "https://openrouter.ai/api/v1", "deepseek/deepseek-r1",
         env=("OPENROUTER_API_KEY",), docs="https://openrouter.ai/keys",
     ),
     "deepseek": ProviderSpec(
-        "deepseek", "openai", "https://api.deepseek.com", "deepseek-chat",
+        # deepseek-reasoner = R1 (top open reasoning); use deepseek-chat for speed.
+        "deepseek", "openai", "https://api.deepseek.com", "deepseek-reasoner",
         env=("DEEPSEEK_API_KEY",), docs="https://platform.deepseek.com",
     ),
     "mistral": ProviderSpec(
@@ -81,12 +86,12 @@ PROVIDERS: dict[str, ProviderSpec] = {
         env=("MISTRAL_API_KEY",), docs="https://console.mistral.ai",
     ),
     "together": ProviderSpec(
-        "together", "openai", "https://api.together.xyz/v1", "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+        "together", "openai", "https://api.together.xyz/v1", "deepseek-ai/DeepSeek-R1",
         env=("TOGETHER_API_KEY",), docs="https://api.together.ai",
     ),
     "fireworks": ProviderSpec(
         "fireworks", "openai", "https://api.fireworks.ai/inference/v1",
-        "accounts/fireworks/models/llama-v3p3-70b-instruct",
+        "accounts/fireworks/models/deepseek-r1",
         env=("FIREWORKS_API_KEY",), docs="https://fireworks.ai",
     ),
     "cerebras": ProviderSpec(
