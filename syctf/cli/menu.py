@@ -44,6 +44,7 @@ _CATEGORIES = [
     ("misc", "Misc / Decode"),
 ]
 _AI = [
+    ("set-key", "Set AI Key     — pick provider + paste key (saved & activated)"),
     ("providers", "AI Providers   — 17 backends, bring any key"),
     ("ai-setup", "AI Setup       — local Ollama"),
     ("ai-exploit", "AI Exploit     — generate exploit skeleton"),
@@ -259,6 +260,44 @@ def _about(console: Console) -> None:
     console.print(Panel(grid, title="[bold bright_cyan]About[/bold bright_cyan]", border_style="bright_cyan", padding=(1, 2)))
 
 
+def _set_ai_key(app) -> None:
+    """Pick a provider, paste its key (hidden), and activate it — no shell needed."""
+
+    console = app.console
+    from syctf.ai.keystore import set_key
+    from syctf.ai.providers.catalog import PROVIDERS
+    from syctf.ai.settings import load_ai_settings, save_ai_settings
+
+    specs = list(PROVIDERS.values())
+    table = Table(title="Choose a provider", border_style="cyan")
+    table.add_column("#", style="bold bright_cyan", no_wrap=True)
+    table.add_column("Provider", style="green")
+    table.add_column("Default model", style="white")
+    table.add_column("", style="dim")
+    for i, spec in enumerate(specs, 1):
+        table.add_row(str(i), spec.name, spec.model, "local (no key)" if spec.local else spec.env[0] if spec.env else "")
+    console.print(table)
+
+    choice = console.input("[bold cyan]Provider # (Enter = cancel):[/bold cyan] ").strip()
+    if not choice.isdigit() or not (1 <= int(choice) <= len(specs)):
+        return
+    spec = specs[int(choice) - 1]
+
+    if not spec.local:
+        key = console.input(f"[bold cyan]Paste {spec.name} API key[/bold cyan] [dim](hidden)[/dim]: ", password=True).strip()
+        if key:
+            set_key(spec.name, key)
+            console.print(f"[green]Key saved for {spec.name}[/green] [dim](~/.config/syctf/keys.json, 0600)[/dim]")
+    model = console.input(f"[cyan]Model[/cyan] [dim](Enter = {spec.model})[/dim]: ").strip() or spec.model
+
+    settings = load_ai_settings()
+    settings.provider = spec.name
+    settings.model = model
+    save_ai_settings(settings)
+    console.print(f"[bold green]Active AI:[/bold green] {spec.name} · {model}")
+    console.print("[dim]Verify from the menu → AI Providers.[/dim]")
+
+
 def _plugins(console: Console) -> None:
     from syctf.core.plugin_marketplace import PluginManager
 
@@ -287,6 +326,8 @@ def _dispatch(app, kind: str) -> None:
         from syctf.cli.commands.memory import render_memory
 
         render_memory(console=console)
+    elif kind == "set-key":
+        _set_ai_key(app)
     elif kind == "providers":
         from syctf.cli.commands.providers import render_providers
 

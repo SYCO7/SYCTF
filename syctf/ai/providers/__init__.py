@@ -26,13 +26,18 @@ __all__ = [
 
 
 def resolve_api_key(spec: ProviderSpec) -> str | None:
-    """Return the first non-empty env var key for a provider, if any."""
+    """Return the provider's key: env vars first, then the menu keystore."""
 
     for env_name in spec.env:
         value = os.environ.get(env_name, "").strip()
         if value:
             return value
-    return None
+    try:
+        from syctf.ai.keystore import get_key
+
+        return get_key(spec.name)
+    except Exception:  # noqa: BLE001
+        return None
 
 
 def _resolve_base_url(spec: ProviderSpec) -> str:
