@@ -28,7 +28,7 @@ class OllamaProvider(BaseProvider):
         *,
         temperature: float = 0.2,
         max_tokens: int = 2048,
-        timeout: float = 120.0,
+        timeout: float = 600.0,          # CPU-VM inference can be slow / cold-start
         **kwargs: Any,
     ) -> ChatResult:
         started = time.perf_counter()

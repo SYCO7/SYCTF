@@ -8,7 +8,7 @@ from typing import Any
 
 from syctf.ai.ollama_resolver import OllamaDiagnostics, OllamaResolver, OllamaResolverError
 
-_DEFAULT_TIMEOUT_SECONDS = 30.0
+_DEFAULT_TIMEOUT_SECONDS = 180.0
 
 
 @dataclass(slots=True)

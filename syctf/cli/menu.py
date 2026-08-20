@@ -167,6 +167,18 @@ def _run_category(app, category: str) -> None:
         app.logger.exception("menu module %s/%s failed: %s", category, name, exc)
 
 
+def _choose_ai(app) -> None:
+    """Show the active AI backend and let the user switch it inline."""
+
+    console = app.console
+    from syctf.ai.settings import load_ai_settings
+
+    s = load_ai_settings()
+    console.print(f"[dim]AI backend:[/dim] [cyan]{s.provider}:{s.model}[/cyan]")
+    if console.input("[cyan]Change AI backend / model?[/cyan] [dim](y/N)[/dim]: ").strip().lower() in ("y", "yes"):
+        _set_ai_key(app)
+
+
 def _run_solve(app) -> None:
     console = app.console
     fmt = _ask_flag_format(app, required=True)
@@ -174,6 +186,8 @@ def _run_solve(app) -> None:
     if not target:
         return
     use_ai = console.input("[cyan]Use AI reasoning?[/cyan] [dim](Y/n)[/dim]: ").strip().lower() not in ("n", "no")
+    if use_ai:
+        _choose_ai(app)
     from syctf.cli.commands.solve import run_solve
 
     console.rule("[bold green]autonomous solve[/bold green]")
@@ -188,6 +202,7 @@ def _run_agent(app) -> None:
         return
     goal = console.input("[cyan]Goal[/cyan] [dim](blank = capture the flag)[/dim]: ").strip() or "capture the flag"
     budget = console.input("[cyan]Max tool calls[/cyan] [dim](default 10)[/dim]: ").strip()
+    _choose_ai(app)
     from syctf.cli.commands.agent import run_agent
 
     console.rule("[bold green]autonomous agent[/bold green]")
