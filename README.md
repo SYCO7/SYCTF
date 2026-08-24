@@ -7,7 +7,7 @@
 [![CI](https://github.com/SYCO7/SYCTF/actions/workflows/ci.yml/badge.svg)](https://github.com/SYCO7/SYCTF/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/SYCO7/SYCTF/actions/workflows/codeql.yml/badge.svg)](https://github.com/SYCO7/SYCTF/actions/workflows/codeql.yml)
 [![AI](https://img.shields.io/badge/AI-17%20providers%20·%20bring%20any%20key-111827)](docs/ai/models.md)
-[![Release](https://img.shields.io/badge/v2.0.0-%E2%80%9CHydra%E2%80%9D-bc8cff)](CHANGELOG.md)
+[![Release](https://img.shields.io/badge/v2.0.1-%E2%80%9CHydra%E2%80%9D-bc8cff)](CHANGELOG.md)
 
 ![SYCTF demo](assets/demo.gif)
 

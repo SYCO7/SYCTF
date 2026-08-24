@@ -2,7 +2,23 @@
 
 All notable changes to SYCTF are documented here.
 
-## [0.2.0] — "Hydra"
+## [2.0.1] — "Hydra"
+
+Cleanup release: drop the last V1 leftovers.
+
+### Removed
+- Legacy interactive `syctf shell` command and its exclusively-used AI-session
+  backend (`syctf/modules/ai/session.py`) — superseded by the numbered `menu`.
+  `syctf shell` now exits with `invalid choice: 'shell'`.
+- Deleted the `v0.1-alpha` git tag (local + remote).
+
+### Changed
+- Retargeted stale workflow hints (`category_detector`, `ai_setup`) at current
+  commands (`agent` / `solve` / `auto-decode` / `ai exploit`).
+- `syctf.__version__` now sourced from `syctf/version.py` (was a stale hardcoded
+  `0.1.0`); normalized all tracked text files to LF.
+
+## [2.0.0] — "Hydra"
 
 Autonomous, provider-agnostic release.
 
