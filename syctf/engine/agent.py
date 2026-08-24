@@ -61,7 +61,8 @@ class AgentOrchestrator:
         self.router = router
         self.verifier = verifier
         self.console = console or Console()
-        self.detector = FlagDetector(custom_format=flag_format or context.cache.get("flag_format"))
+        self.flag_format = flag_format or context.cache.get("flag_format")
+        self.detector = FlagDetector(custom_format=self.flag_format)
         self._registry = self._build_registry()
 
     # -- tool registry ------------------------------------------------------
@@ -162,12 +163,53 @@ class AgentOrchestrator:
         except json.JSONDecodeError:
             return None
 
+    # -- deterministic seed -------------------------------------------------
+    def _seed_evidence(self, target: str, transcript: list[str], evidence: list[str]) -> str | None:
+        """Run cheap grounded collectors before the LLM so even a weak model is
+        anchored in real evidence (file type, text class, decoded payload).
+
+        Returns a verified flag immediately if the deterministic pass already
+        surfaces one -- this makes ``agent`` at least as strong as ``solve`` on
+        trivial challenges (e.g. a base64 flag) instead of leaving them to a
+        small model's tool-picking guesswork.
+        """
+
+        try:
+            from syctf.engine import Engine
+            from syctf.engine.executor import Executor
+
+            ctx = Engine().ingest(target, flag_format=self.flag_format)
+        except Exception:  # noqa: BLE001 -- seeding is best-effort, never fatal
+            return None
+
+        executor = Executor(detector=self.detector)
+        for tool in ("identify", "classify-text", "auto-decode", "strings"):
+            try:
+                obs = executor.run(ctx, 0, tool)
+            except Exception:  # noqa: BLE001
+                continue
+            if not obs.ok or not obs.output:
+                continue
+            evidence.append(obs.output)
+            transcript.append(f"[seed:{tool}] {obs.summary} :: {obs.output[:400]}")
+            if obs.flags:
+                # Grounded in real deterministic output -- trust it directly.
+                return obs.flags[0]
+        if ctx.category and ctx.category not in ("unknown", ""):
+            transcript.append(f"[seed] target category looks like: {ctx.category}")
+        return None
+
     # -- main loop ----------------------------------------------------------
     def run(self, target: str, *, goal: str = "capture the flag", budget: int = 10) -> AgentResult:
         transcript: list[str] = [f"target set to {target}"]
         calls: list[ToolCall] = []
         evidence: list[str] = []
         self.context.cache["target"] = target
+
+        seed_flag = self._seed_evidence(target, transcript, evidence)
+        if seed_flag is not None:
+            self.console.print(f"[green]seed pass found a grounded flag:[/green] {seed_flag}")
+            return AgentResult(True, seed_flag, 0, transcript, calls)
 
         for step in range(1, budget + 1):
             action = self._decide(goal, target, transcript)
