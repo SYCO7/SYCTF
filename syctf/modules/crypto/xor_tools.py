@@ -74,14 +74,21 @@ class XorToolsPlugin:
             self._emit(context, detector, _xor(data, key), f"key={key!r}")
             return 0
 
-        # single-byte: flag-detection first (beats naive frequency scoring)
+        # single-byte: gather every key whose plaintext holds a real flag, then
+        # pick the most English-readable one. Ranking by score stops a garbage
+        # "x{y}" at a low key from beating the real flag{...} at a higher key.
+        flag_hits: list[tuple[float, int, str]] = []
         for k in range(256):
             candidate = _xor(data, bytes([k]))
             for hit in detector.scan(candidate.decode("latin-1", "ignore")):
                 if hit.real:
-                    context.console.print(f"[bold green]FLAG (single-byte key=0x{k:02x}):[/bold green] {hit.value}")
-                    context.cache["flag"] = hit.value
-                    return 0
+                    flag_hits.append((_score(candidate), k, hit.value))
+                    break
+        if flag_hits:
+            _, k, value = max(flag_hits, key=lambda t: t[0])
+            context.console.print(f"[bold green]FLAG (single-byte key=0x{k:02x}):[/bold green] {value}")
+            context.cache["flag"] = value
+            return 0
 
         # single-byte (scored fallback)
         best = max(range(256), key=lambda k: _score(_xor(data, bytes([k]))))

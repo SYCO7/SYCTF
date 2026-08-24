@@ -205,6 +205,9 @@ class AgentOrchestrator:
         calls: list[ToolCall] = []
         evidence: list[str] = []
         self.context.cache["target"] = target
+        if self.flag_format:
+            # Let invoked modules (xor-tools, etc.) honor the same flag format.
+            self.context.cache["flag_format"] = self.flag_format
 
         seed_flag = self._seed_evidence(target, transcript, evidence)
         if seed_flag is not None:

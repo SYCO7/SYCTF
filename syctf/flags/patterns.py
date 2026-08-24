@@ -48,7 +48,9 @@ def compile_patterns(custom_format: str | None = None) -> list[re.Pattern[str]]:
         elif fmt.endswith("{}"):
             fmt = re.escape(fmt[:-2]) + r"\{[^{}\n]{1,200}\}"
         try:
-            patterns.append(re.compile(fmt))
+            # A set flag format is authoritative: match ONLY it, so garbage like
+            # "wsOwov{gGs6fw}" decoded out of noise can't pass as a real flag.
+            return [re.compile(fmt)]
         except re.error:
             pass
     for raw in DEFAULT_FLAG_REGEXES:
