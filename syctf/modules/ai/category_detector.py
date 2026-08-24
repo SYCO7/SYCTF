@@ -174,7 +174,7 @@ def suggested_workflow(category: str) -> list[str]:
         "pwn": [
             "syctf pwn-helper elf-analyze ./chall",
             "syctf pwn-helper cyclic generate --length 300",
-            "syctf shell  # then: ai exploit ./chall",
+            "syctf ai exploit ./chall",
         ],
         "crypto": [
             "syctf crypto-helper hash-ident --hash <hash>",
@@ -188,17 +188,17 @@ def suggested_workflow(category: str) -> list[str]:
         ],
         "rev": [
             "syctf misc env-check",
-            "syctf shell  # then: ai recon-plan",
+            "syctf agent ./chall --goal 'reverse to the flag'",
             "syctf misc smart-decode --text <obfuscated_blob>",
         ],
         "forensics": [
             "syctf misc smart-decode --text <artifact_string>",
             "syctf misc env-check --tools strings binwalk",
-            "syctf shell  # then: ai decode",
+            "syctf auto-decode <artifact_string>",
         ],
         "misc": [
             "syctf misc smart-decode --text <input>",
-            "syctf shell  # then: ai recon-plan",
+            "syctf solve <input>",
             "syctf ai-setup",
         ],
     }

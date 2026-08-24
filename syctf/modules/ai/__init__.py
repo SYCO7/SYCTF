@@ -1,1 +1,1 @@
-"""AI session module package for SYCTF shell mode."""
+"""AI helper module package for SYCTF (exploit, writeup, auto-decode)."""

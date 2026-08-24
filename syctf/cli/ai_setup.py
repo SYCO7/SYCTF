@@ -125,4 +125,4 @@ def run_ai_setup():
             return
 
     print("\n[green]AI setup complete.[/green]")
-    print("Run: python -m syctf shell -> ai")
+    print("Run: syctf ai providers  (or: syctf agent ./chal)")

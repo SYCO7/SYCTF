@@ -12,7 +12,6 @@ from rich.console import Console
 from syctf.cli.ai_setup import run_ai_setup
 from syctf.cli.banner import render_startup
 from syctf.cli.menu import run_menu
-from syctf.cli.shell import run_shell
 from syctf.core.benchmark import run_benchmark
 from syctf.core.execution import run_with_guard
 from syctf.core.plugin_marketplace import PluginManager, run_plugin_command
@@ -79,9 +78,6 @@ class SyctfApp:
 
 		if args.command == "menu":
 			return run_menu(self)
-
-		if args.command == "shell":
-			return run_shell(self)
 
 		if args.command == "ai-setup":
 			try:
@@ -369,6 +365,5 @@ class SyctfApp:
 		commands.add_parser("memory", help="Show what the cross-challenge solve memory has learned")
 
 		commands.add_parser("menu", help="Launch the interactive numbered menu (default when no command)")
-		commands.add_parser("shell", help="Start interactive SYCTF shell")
 		return parser
 
