@@ -66,7 +66,7 @@ class XorToolsPlugin:
 
         detector = FlagDetector(custom_format=context.cache.get("flag_format"))
 
-        if args.key:
+        if args.key and args.key.strip():
             try:
                 key = binascii.unhexlify("".join(args.key.split()))
             except binascii.Error:
