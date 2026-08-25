@@ -2,14 +2,24 @@
 
 from __future__ import annotations
 
+import os
+
 from rich.panel import Panel
 from rich.table import Table
 
 
-def run_agent(app, target: str, *, goal: str = "capture the flag", budget: int = 10, flag_format: str | None = None) -> int:
+def run_agent(app, target: str, *, goal: str = "capture the flag", budget: int = 10, flag_format: str | None = None, provider: str | None = None, model: str | None = None) -> int:
     """Run the autonomous agent and render the outcome. Returns exit code."""
 
     console = app.console
+
+    if provider:
+        os.environ["SYCTF_AI_PROVIDER"] = provider
+    if model:
+        os.environ["SYCTF_AI_MODEL"] = model
+    if provider or model:
+        console.print(f"[dim]AI override → {provider or 'current'}:{model or 'default'}[/dim]")
+
     from syctf.ai.router import ModelRouter
     from syctf.ai.verifier import Verifier
     from syctf.engine.agent import AgentOrchestrator

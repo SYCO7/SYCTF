@@ -1,9 +1,37 @@
-"""`syctf ai providers` -- show which AI backends are configured."""
+"""`syctf ai providers` / `syctf ai use` -- show or switch AI backends."""
 
 from __future__ import annotations
 
 from rich.console import Console
 from rich.table import Table
+
+
+def switch_provider(provider: str, model: str | None = None, console: Console | None = None) -> int:
+    """Persist a provider (and optional model) switch to ai.json."""
+
+    console = console or Console()
+    from syctf.ai.providers.catalog import PROVIDERS, get_spec
+    from syctf.ai.settings import load_ai_settings, save_ai_settings
+
+    try:
+        spec = get_spec(provider)
+    except KeyError:
+        valid = ", ".join(sorted(PROVIDERS))
+        console.print(f"[red]Unknown provider {provider!r}[/red]\nValid: {valid}")
+        return 1
+
+    settings = load_ai_settings()
+    settings.provider = spec.name
+    settings.model = model.strip() if model else spec.model
+    save_ai_settings(settings)
+
+    key_hint = "no key needed (local)" if spec.local else f"needs ${spec.env[0]}" if spec.env else ""
+    console.print(
+        f"[green]Switched → [/green][cyan]{spec.name}[/cyan] / [cyan]{settings.model}[/cyan]"
+        + (f"  [dim]({key_hint})[/dim]" if key_hint else "")
+    )
+    console.print("[dim]Saved to ~/.config/syctf/ai.json — override any time with SYCTF_AI_PROVIDER env.[/dim]")
+    return 0
 
 
 def render_providers(console: Console | None = None) -> int:

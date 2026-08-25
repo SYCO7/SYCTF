@@ -120,6 +120,8 @@ class SyctfApp:
 					use_ai=not bool(getattr(args, "no_ai", False)),
 					budget=int(getattr(args, "budget", 12)),
 					ensemble=int(getattr(args, "ensemble", 1)),
+					provider=getattr(args, "provider", "") or None,
+					model=getattr(args, "model", "") or None,
 					console=self.console,
 				),
 				console=self.console,
@@ -158,6 +160,8 @@ class SyctfApp:
 					goal=getattr(args, "goal", "capture the flag"),
 					budget=int(getattr(args, "budget", 10)),
 					flag_format=getattr(args, "flag_format", None),
+					provider=getattr(args, "provider", "") or None,
+					model=getattr(args, "model", "") or None,
 				),
 				console=self.console,
 				logger_name="agent",
@@ -186,6 +190,10 @@ class SyctfApp:
 				from syctf.cli.commands.providers import render_providers
 
 				return render_providers(console=self.console)
+			if getattr(args, "ai_action", "") == "use":
+				from syctf.cli.commands.providers import switch_provider
+
+				return switch_provider(args.provider, getattr(args, "model", None), console=self.console)
 			if getattr(args, "ai_action", "") == "writeup":
 				generate_writeup = importlib.import_module("syctf.modules.ai.writeup_generator").generate_writeup
 				return run_with_guard(
@@ -202,7 +210,7 @@ class SyctfApp:
 					logger=self.logger,
 				)
 			self.console.print(
-				"[yellow]Usage:[/yellow] syctf ai exploit <binary_path> | syctf ai writeup | syctf ai providers"
+				"[yellow]Usage:[/yellow] syctf ai exploit <binary_path> | syctf ai writeup | syctf ai providers | syctf ai use <provider> [model]"
 			)
 			return 2
 
@@ -339,6 +347,8 @@ class SyctfApp:
 		solve_parser.add_argument("--budget", type=int, default=12, help="Max solve steps")
 		solve_parser.add_argument("--ensemble", type=int, default=1, help="Self-consistency samples (anti-hallucination)")
 		solve_parser.add_argument("--no-ai", dest="no_ai", action="store_true", help="Deterministic pass only, no LLM")
+		solve_parser.add_argument("--provider", dest="provider", default="", help="AI provider override: ollama, anthropic, nvidia, openai, …")
+		solve_parser.add_argument("--model", dest="model", default="", help="Model ID override for this solve run")
 
 		commands.add_parser("ai-setup", help="Setup local AI environment for SYCTF")
 		ai_parser = commands.add_parser("ai", help="AI-powered helper commands")
@@ -349,12 +359,17 @@ class SyctfApp:
 		ai_writeup = ai_subparsers.add_parser("writeup", help="Generate markdown writeup from session context")
 		ai_writeup.add_argument("--model", default="deepseek-coder:6.7b", help="Ollama model name")
 		ai_subparsers.add_parser("providers", help="Show configured AI providers (any API key)")
+		ai_use = ai_subparsers.add_parser("use", help="Switch active AI provider (persists to ai.json)")
+		ai_use.add_argument("provider", help="Provider: ollama, anthropic, nvidia, openai, gemini, groq, …")
+		ai_use.add_argument("model", nargs="?", default=None, help="Model ID (defaults to provider's recommended model)")
 
 		agent_parser = commands.add_parser("agent", help="Autonomous agent: LLM drives real modules to the flag")
 		agent_parser.add_argument("target", help="Path, ciphertext, URL, or host to solve")
 		agent_parser.add_argument("--goal", default="capture the flag", help="Objective for the agent")
 		agent_parser.add_argument("--budget", type=int, default=10, help="Max tool calls")
 		agent_parser.add_argument("--flag-format", dest="flag_format", help="Flag format, e.g. picoCTF{}")
+		agent_parser.add_argument("--provider", dest="provider", default="", help="AI provider override: ollama, anthropic, nvidia, openai, …")
+		agent_parser.add_argument("--model", dest="model", default="", help="Model ID override for this agent run")
 
 		arena_parser = commands.add_parser("arena", help="Batch-solve a folder of challenges into a scoreboard")
 		arena_parser.add_argument("path", help="Directory containing challenges")

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
@@ -14,11 +16,22 @@ def run_solve(
     use_ai: bool = True,
     budget: int = 12,
     ensemble: int = 1,
+    provider: str | None = None,
+    model: str | None = None,
     console: Console | None = None,
 ) -> int:
     """Solve ``target`` autonomously and print a report. Returns exit code."""
 
     console = console or Console()
+
+    if provider:
+        os.environ["SYCTF_AI_PROVIDER"] = provider
+    if model:
+        os.environ["SYCTF_AI_MODEL"] = model
+    if provider or model:
+        label = f"{provider or 'current'}:{model or 'default'}"
+        console.print(f"[dim]AI override → {label}[/dim]")
+
     from syctf.engine import Engine
 
     console.print(Panel(f"Autonomous solve: [cyan]{target}[/cyan]", border_style="magenta"))
