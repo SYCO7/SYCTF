@@ -44,11 +44,12 @@ _CATEGORIES = [
     ("misc", "Misc / Decode"),
 ]
 _AI = [
-    ("set-key", "Set AI Key     — pick provider + paste key (saved & activated)"),
+    ("switch-ai", "Switch AI      — pick provider + model (no key re-entry)"),
+    ("set-key",   "Set AI Key     — pick provider + paste key (saved & activated)"),
     ("providers", "AI Providers   — 17 backends, bring any key"),
-    ("ai-setup", "AI Setup       — local Ollama"),
-    ("ai-exploit", "AI Exploit     — generate exploit skeleton"),
-    ("ai-writeup", "AI Writeup     — markdown from session"),
+    ("ai-setup",  "AI Setup       — local Ollama setup wizard"),
+    ("ai-exploit", "AI Exploit    — generate exploit skeleton"),
+    ("ai-writeup", "AI Writeup    — markdown from session"),
 ]
 _TOOLS = [
     ("set-format", "Set Flag Format  — e.g. picoCTF  (used by every module)"),
@@ -167,6 +168,40 @@ def _run_category(app, category: str) -> None:
         app.logger.exception("menu module %s/%s failed: %s", category, name, exc)
 
 
+def _switch_ai(app) -> None:
+    """Quick provider switch — no key prompt. Uses already-configured keys."""
+
+    console = app.console
+    from syctf.ai.providers.catalog import PROVIDERS
+    from syctf.ai.settings import load_ai_settings
+
+    current = load_ai_settings()
+    specs = list(PROVIDERS.values())
+
+    table = Table(title="Switch AI Provider", border_style="cyan")
+    table.add_column("#", style="bold bright_cyan", no_wrap=True)
+    table.add_column("Provider", style="green", no_wrap=True)
+    table.add_column("Default model", style="white")
+    table.add_column("Key / local", style="dim")
+    for i, spec in enumerate(specs, 1):
+        active = " [bold green]<active>[/bold green]" if spec.name == current.provider else ""
+        key_hint = "local — no key" if spec.local else (spec.env[0] if spec.env else "")
+        table.add_row(str(i), spec.name + active, spec.model, key_hint)
+    console.print(table)
+    console.print(f"[dim]Current: {current.provider} · {current.model}[/dim]")
+
+    choice = console.input("[bold cyan]Provider # (Enter = cancel):[/bold cyan] ").strip()
+    if not choice.isdigit() or not (1 <= int(choice) <= len(specs)):
+        return
+    spec = specs[int(choice) - 1]
+
+    model_input = console.input(f"[cyan]Model[/cyan] [dim](Enter = {spec.model})[/dim]: ").strip()
+    model = model_input or spec.model
+
+    from syctf.cli.commands.providers import switch_provider
+    switch_provider(spec.name, model, console=console)
+
+
 def _choose_ai(app) -> None:
     """Show the active AI backend and let the user switch it inline."""
 
@@ -175,8 +210,8 @@ def _choose_ai(app) -> None:
 
     s = load_ai_settings()
     console.print(f"[dim]AI backend:[/dim] [cyan]{s.provider}:{s.model}[/cyan]")
-    if console.input("[cyan]Change AI backend / model?[/cyan] [dim](y/N)[/dim]: ").strip().lower() in ("y", "yes"):
-        _set_ai_key(app)
+    if console.input("[cyan]Switch AI provider?[/cyan] [dim](y/N)[/dim]: ").strip().lower() in ("y", "yes"):
+        _switch_ai(app)
 
 
 def _run_solve(app) -> None:
@@ -341,6 +376,8 @@ def _dispatch(app, kind: str) -> None:
         from syctf.cli.commands.memory import render_memory
 
         render_memory(console=console)
+    elif kind == "switch-ai":
+        _switch_ai(app)
     elif kind == "set-key":
         _set_ai_key(app)
     elif kind == "providers":
